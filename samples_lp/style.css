@@ -1,0 +1,538 @@
+:root {
+    --bg-color: #0a0a0c;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0ab;
+    --accent-color: #6366f1;
+    --accent-glow: rgba(99, 102, 241, 0.4);
+    --handle-color: #ffffff;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    background-image:
+        radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.08), transparent 25%);
+    background-attachment: fixed;
+}
+
+/* Typography */
+.header {
+    text-align: center;
+    padding: 6rem 1rem 4rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.title {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 40px rgba(165, 180, 252, 0.2);
+}
+
+.subtitle {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* Sections */
+.sample-section {
+    margin-bottom: 8rem;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sample-section.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Slider Component */
+.slider-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    /* Ensure a consistent bounding box */
+    overflow: hidden;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    margin-bottom: 2rem;
+    transition: background 0.3s ease;
+}
+
+/* Default to dark checkerboard if no explicit class is set, though we usually append .bg-checker */
+.slider-container:not(.bg-black):not(.bg-white) {
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><rect width="10" height="10" fill="%231a1a1a"/><rect x="10" width="10" height="10" fill="%23222222"/><rect y="10" width="10" height="10" fill="%23222222"/><rect x="10" y="10" width="10" height="10" fill="%231a1a1a"/></svg>') repeat;
+}
+
+/* Since our images might not be exactly 16:9, we should ensure they fit nicely */
+.image-after,
+.image-before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    /* Contain to show full image without cropping */
+    pointer-events: none;
+    user-select: none;
+    transform-origin: 0 0;
+    /* Important for manual zoom calculation */
+}
+
+.image-before-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    /* This will be controlled by JS */
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+/* The inner image needs to be forced to the container's full width, not the wrapper's width */
+.image-before-wrapper img {
+    /* To keep alignment with the background image, we give it a fixed width equivalent to its container.
+       We'll set the inner img width to the outer container width via JS or CSS vars */
+    position: absolute;
+    /* Add absolute to prevent layout shifts/height issues */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: left;
+    transform-origin: 0 0;
+}
+
+.slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    margin: 0;
+    z-index: 20;
+    cursor: grab;
+}
+
+.slider:active {
+    cursor: grabbing;
+}
+
+.slider::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 4px;
+    height: 100vh;
+    background: transparent;
+}
+
+.slider::-moz-range-thumb {
+    width: 4px;
+    height: 100vh;
+    background: transparent;
+    border: none;
+}
+
+/* Custom Handle Visuals */
+.slider-handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.slider-handle-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -1px;
+    /* Center the 2px line */
+    width: 2px;
+    background-color: var(--handle-color);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.slider-handle-circle {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translate(-50%, -50%);
+    width: 48px;
+    height: 48px;
+    background-color: var(--handle-color);
+    border-radius: 50%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 6px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 0 5px rgba(255, 255, 255, 0.1);
+    color: #121212;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.slider-handle-circle svg {
+    width: 16px;
+    height: 16px;
+}
+
+.slider:hover~.slider-handle .slider-handle-circle {
+    transform: translate(-50%, -50%) scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 0 6px rgba(255, 255, 255, 0.15);
+}
+
+.slider:active~.slider-handle .slider-handle-circle {
+    transform: translate(-50%, -50%) scale(0.95);
+}
+
+
+/* Description */
+.description {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.description h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #fff;
+}
+
+.description p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.footer {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sample-section {
+        margin-bottom: 5rem;
+    }
+
+    .slider-handle-circle {
+        width: 40px;
+        height: 40px;
+    }
+
+    .slider-handle-circle svg {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+/* Background variations */
+.slider-container.bg-checker {
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><rect width="10" height="10" fill="%231a1a1a"/><rect x="10" width="10" height="10" fill="%23222222"/><rect y="10" width="10" height="10" fill="%23222222"/><rect x="10" y="10" width="10" height="10" fill="%231a1a1a"/></svg>') repeat;
+}
+
+.slider-container.bg-black {
+    background: #000;
+}
+
+.slider-container.bg-white {
+    background: #fff;
+}
+
+/* Floating Controls (Glassmorphism) */
+.floating-controls {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: rgba(20, 20, 25, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 9999px;
+    /* Pill shape */
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    z-index: 100;
+    transform: translateY(100px);
+    opacity: 0;
+    animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.5s;
+}
+
+@keyframes slideUpFade {
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.control-divider {
+    width: 1px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.control-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.bg-options {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+}
+
+.bg-toggle {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.bg-toggle:hover {
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.bg-toggle.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    box-shadow: 0 0 0 1px var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.color-picker-wrapper {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    margin-left: 0.5rem;
+}
+
+.color-picker-wrapper:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.05);
+}
+
+.color-picker-wrapper.disabled {
+    opacity: 0.3;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+#bgColorPicker {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+}
+
+.external-link {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.external-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--accent-color);
+}
+
+.external-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.lang-group {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 9999px;
+    padding: 0.25rem;
+}
+
+.lang-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.lang-btn:hover {
+    color: var(--text-primary);
+}
+
+.lang-btn.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.sample-link.highlight {
+    background: rgba(255, 235, 59, 0.1);
+    border-color: rgba(255, 235, 59, 0.3);
+    color: #ffeb3b;
+}
+
+.sample-link.highlight:hover {
+    background: rgba(255, 235, 59, 0.2);
+    border-color: rgba(255, 235, 59, 0.5);
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .floating-controls {
+        bottom: 1rem;
+        right: 1rem;
+        left: 1rem;
+        /* Center on mobile */
+        justify-content: center;
+        border-radius: 16px;
+        /* Less round on mobile */
+    }
+}
+
+/* Help Tooltip Styles */
+.help-group {
+    position: relative;
+    cursor: pointer;
+}
+
+.help-trigger {
+    display: flex;
+    align-items: center;
+    color: var(--text-secondary);
+    transition: color 0.2s ease;
+}
+
+.help-trigger:hover {
+    color: var(--text-primary);
+}
+
+.help-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.help-tooltip {
+    position: absolute;
+    bottom: calc(100% + 1rem);
+    left: 0;
+    background: rgba(20, 20, 25, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    width: max-content;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1000;
+}
+
+.help-group:hover .help-tooltip {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.help-item {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    justify-content: space-between;
+}
+
+.help-key {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 700;
+    min-width: 60px;
+    text-align: center;
+}
+
+.help-desc {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 500;
+}

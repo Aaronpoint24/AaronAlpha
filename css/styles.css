@@ -1,0 +1,1326 @@
+:root {
+    --bg-dark: #1e1e1e;
+    --bg-panel: #252526;
+    --bg-header: #333333;
+    --accent: #007acc;
+    --accent-hover: #0098ff;
+    --text-main: #cccccc;
+    --text-white: #ffffff;
+    --border: #3e3e42;
+    --danger: #d9534f;
+    --input-bg: #3c3c3c;
+}
+
+* {
+    box-sizing: border-box;
+    user-select: none;
+    /* UIの文字選択を防ぐ */
+}
+
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* 全体スクロール禁止 */
+}
+
+/* App Header & Title */
+.app-header {
+    height: 48px;
+    background-color: var(--bg-header);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    justify-content: space-between;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    /* Space between gear and title */
+}
+
+.app-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-white);
+    display: flex;
+    align-items: center;
+}
+
+.version {
+    font-size: 12px;
+    opacity: 0.6;
+    margin-left: 8px;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    color: var(--text-main);
+    cursor: pointer;
+    font-size: 20px;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.icon-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-white);
+}
+
+.icon-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+/* Main Container */
+.main-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Left Panel */
+.control-panel {
+    width: 300px;
+    background-color: var(--bg-panel);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    min-width: 300px;
+}
+
+/* Input Section */
+.input-section {
+    padding: 10px;
+    display: flex;
+    gap: 10px;
+    height: 100px;
+    border-bottom: 1px solid var(--border);
+}
+
+.drop-zone {
+    flex: 1;
+    border: 2px dashed var(--border);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    background-color: var(--input-bg);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.drop-zone.small {
+    height: 55px;
+    margin-bottom: 10px;
+}
+
+.drop-zone:hover {
+    border-color: var(--accent);
+}
+
+.preview-thumb {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+}
+
+.has-image .preview-thumb {
+    opacity: 1;
+}
+
+.drop-zone.dragover {
+    border-color: var(--accent);
+    background-color: rgba(0, 122, 204, 0.1);
+}
+
+/* Tabs */
+.mode-tabs {
+    display: flex;
+    background-color: var(--bg-header);
+}
+
+.tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 10px;
+    color: var(--text-main);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+}
+
+.tab-btn:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.active {
+    color: var(--text-white);
+    border-bottom-color: var(--accent);
+    background-color: var(--bg-panel);
+}
+
+/* Controls Content */
+.controls-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    position: relative;
+    /* Base for no-image-panel-overlay */
+}
+
+.panel-page {
+    display: none;
+}
+
+.panel-page.active {
+    display: block;
+}
+
+h3 {
+    font-size: 14px;
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: var(--text-white);
+    border-left: 3px solid var(--accent);
+    padding-left: 8px;
+}
+
+.control-group {
+    margin-bottom: 15px;
+}
+
+.control-group.row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+label {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+input[type="range"] {
+    width: 100%;
+}
+
+input[type="number"] {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    color: white;
+    padding: 2px 5px;
+}
+
+/* Buttons */
+button {
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-hover);
+}
+
+.btn-secondary,
+.btn-action,
+.btn-toggle {
+    background-color: var(--input-bg);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+.btn-secondary:hover {
+    background-color: #444;
+}
+
+.btn-toggle.active {
+    background-color: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.btn-danger {
+    background-color: var(--danger);
+    color: white;
+    border: none;
+    padding: 2px 8px;
+    border-radius: 3px;
+}
+
+.btn-danger:hover {
+    opacity: 0.9;
+}
+
+.export-area {
+    margin-top: 30px;
+    padding-top: 15px;
+    border-top: 1px dashed var(--border);
+}
+
+.hint {
+    display: block;
+    margin-top: 5px;
+    font-size: 10px;
+    color: #888;
+    text-align: center;
+}
+
+.grid-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.grid-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 5px;
+}
+
+.separator {
+    border: 0;
+    border-top: 1px solid var(--border);
+    margin: 15px 0;
+}
+
+/* Right Viewport */
+.viewport {
+    flex: 1;
+    background-color: #111;
+    position: relative;
+    overflow: hidden;
+    cursor: grab;
+    /* パン可能であることを示す */
+}
+
+.viewport:active {
+    cursor: grabbing;
+}
+
+.canvas-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+/* 透明を表す市松模様 (CSSで実装) */
+.canvas-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        linear-gradient(45deg, #222 25%, transparent 25%),
+        linear-gradient(-45deg, #222 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #222 75%),
+        linear-gradient(-45deg, transparent 75%, #222 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    z-index: 0;
+}
+
+canvas {
+    position: absolute;
+    /* JSで座標制御するため */
+    z-index: 1;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    /* 画像の境界を見やすく */
+}
+
+canvas.bg-solid {
+    background-image: none !important;
+}
+
+
+.viewport-overlay {
+    position: absolute;
+    bottom: 10px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    color: #fff;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* ローディングオーバーレイ */
+#loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    visibility: hidden;
+    /* デフォルトは非表示 */
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+#loading-overlay.visible {
+    visibility: visible;
+    opacity: 1;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #444;
+    border-top: 5px solid #0098ff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.bg-black {
+    background-color: #000000;
+}
+
+.bg-white {
+    background-color: #ffffff;
+}
+
+/* Settings Modal */
+.settings-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 20000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-content {
+    background: #1a1a2e;
+    border: 1px solid #444;
+    border-radius: 10px;
+    padding: 20px;
+    min-width: 280px;
+    max-width: 400px;
+    color: #eee;
+    font-family: 'Inter', sans-serif;
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.settings-header h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.settings-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.settings-body label {
+    font-size: 13px;
+    color: #aaa;
+}
+
+.settings-body select {
+    padding: 6px 10px;
+    background: #333;
+    color: #fff;
+    border: 1px solid #555;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+/* Toggle Switch Component */
+.toggle-switch {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 12px;
+    margin-left: 10px;
+    vertical-align: middle;
+}
+
+.toggle-switch input {
+    display: none;
+}
+
+.toggle-switch .slider {
+    position: relative;
+    width: 30px;
+    height: 16px;
+    background-color: #555;
+    border-radius: 8px;
+    margin-right: 6px;
+    transition: 0.3s;
+    flex-shrink: 0;
+}
+
+.toggle-switch .slider:before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+.toggle-switch input:checked+.slider {
+    background-color: var(--accent);
+}
+
+.toggle-switch input:checked+.slider:before {
+    transform: translateX(14px);
+}
+
+.toggle-switch .label-text {
+    color: var(--text-main);
+}
+
+.toggle-switch:hover .label-text {
+    color: var(--text-white);
+}
+
+/* --- Compact UI Layout --- */
+
+/* Group Header: Label + Comparison Toggle */
+.group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #ccc;
+    border-bottom: 1px solid #444;
+    padding-bottom: 4px;
+}
+
+.group-header label {
+    margin: 0;
+    pointer-events: auto;
+    /* Ensure toggle within header is clickable */
+}
+
+/* Background Toggle (Compact) */
+.bg-toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.bg-toggle-switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    background-color: #333;
+    border-radius: 4px;
+    padding: 2px;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid #555;
+}
+
+.bg-toggle-switch input {
+    display: none;
+}
+
+.bg-toggle-label {
+    padding: 4px 12px;
+    font-size: 11px;
+    border-radius: 3px;
+    transition: all 0.2s;
+    color: #888;
+}
+
+/* Active State Logic for BG Toggle */
+.bg-toggle-switch input:not(:checked)~.label-transparent {
+    background-color: #555;
+    color: #fff;
+    font-weight: bold;
+}
+
+.bg-toggle-switch input:checked~.label-color {
+    background-color: #007bff;
+    color: #fff;
+    font-weight: bold;
+}
+
+/* Inline Controls for Mode Toggles */
+.inline-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+}
+
+.inline-controls>* {
+    flex: 1;
+}
+
+/* Adjust button heights for inline */
+.inline-controls .btn-toggle,
+.inline-controls .drop-zone.small {
+    height: 36px !important;
+    min-height: 36px !important;
+    line-height: normal;
+    /* Reset */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 !important;
+}
+
+/* Compact AA Checkbox */
+.inline-aa {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 8px;
+    font-size: 11px;
+    color: #aaa;
+    vertical-align: middle;
+}
+
+.inline-aa input {
+    margin-right: 4px;
+}
+
+/* UI Locking for Comparison Mode */
+.ui-locked {
+    opacity: 0.5;
+    pointer-events: none;
+    filter: grayscale(100%);
+    cursor: not-allowed;
+}
+
+/* AA Toggle Button */
+.btn-aa-toggle {
+    font-size: 11px;
+    padding: 0 10px;
+    border: 1px solid #555;
+    background: #333;
+    color: #aaa;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    /* Match inline controls */
+}
+
+.btn-aa-toggle.active {
+    background: #007bff;
+    /* Blue */
+    color: white;
+    border-color: #0056b3;
+}
+
+/* Force Height Utility */
+.btn-h-40 {
+    height: 40px !important;
+    min-height: 40px !important;
+}
+
+/* Multiline Message Support */
+.adjust-message span {
+    white-space: pre-wrap;
+    display: block;
+    line-height: 1.4;
+}
+
+/* Explicit Separator */
+.separator-line {
+    border: 0;
+    border-top: 1px solid #444;
+    margin: 15px 0;
+    width: 100%;
+}
+
+/* Footer Icon Styling */
+.footer-icon {
+    width: 80%;
+    height: auto;
+    display: block;
+    margin: 4px auto 0 auto;
+    /* Top 4px, centered horizontally */
+    border-radius: 8px;
+}
+
+/* Authentication Status */
+.auth-status {
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.auth-status.verified {
+    background-color: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+    border: 1px solid #2ecc71;
+}
+
+.auth-status.unverified {
+    background-color: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+}
+
+/* Disabled Button Actions */
+button:disabled,
+.btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    filter: grayscale(100%);
+    position: relative;
+}
+
+/* Tooltip for disabled buttons (simple css approach) */
+.btn-disabled:hover::after {
+    content: attr(data-disabled-msg);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 100;
+}
+
+/* Adjust Mode Messages */
+.adjust-message,
+.matte-message {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    display: flex;
+    /* Overridden by inline style initially */
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 10;
+    pointer-events: none;
+    border-radius: 4px;
+}
+
+/* V06 Solid Source Adjustment Mode */
+.locked-ui {
+    pointer-events: none;
+    opacity: 0.6;
+    filter: grayscale(0.5);
+}
+
+/* No Image Guardrail Overlays */
+#no-image-panel-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* Fill the controls-content container */
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 50;
+    display: none;
+    cursor: not-allowed;
+    /* 進入禁止マーク */
+}
+
+#no-image-canvas-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 50;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: not-allowed;
+    /* 進入禁止マーク */
+}
+
+.no-image-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    color: #fff;
+    /* シンプルな白文字 */
+    font-weight: bold;
+    font-size: 20px;
+    pointer-events: none;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    /* 視認性確保のための影を強調 */
+}
+
+/* Specific state for Setting Screen Help (Right Side Slide) - Maintained */
+.help-overlay.settings-mode {
+    z-index: 20001;
+    /* Above settings-modal (20000) */
+    background: transparent;
+    /* Don't double-darken the background */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    pointer-events: none;
+    /* Allow clicking through to the settings modal */
+}
+
+/* ---------------------------------
+   UI Tooltips (Maintained for Settings)
+--------------------------------- */
+.help-tooltip {
+    position: relative;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: #94A3B8;
+    font-size: 13px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    width: 360px;
+    box-sizing: border-box;
+    white-space: normal;
+}
+
+.help-tooltip strong {
+    display: block;
+    color: #38BDF8;
+    /* sky-400 accent for title */
+    margin-bottom: 4px;
+    font-size: 14px;
+}
+
+.help-tooltip ul {
+    margin: 4px 0 0 16px;
+    padding: 0;
+}
+
+.help-tooltip li {
+    margin-bottom: 2px;
+}
+
+.highlight {
+    color: #4ADE80;
+    /* より鮮やかな緑 */
+    font-size: 1.15em;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(74, 222, 128, 0.4);
+    display: inline-block;
+    line-height: 1.2;
+}
+
+/* ---------------------------------
+   Help Overlay
+--------------------------------- */
+.help-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    /* 透過させてキャンバス操作を優先 */
+    display: none;
+    /* Controlled by .help-active class on body */
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px;
+    box-sizing: border-box;
+    z-index: 100;
+}
+
+body.help-active .help-overlay {
+    display: flex;
+}
+
+.help-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    /* pointer-events: none; 削除 */
+}
+
+.help-column.left {
+    flex: 0 1 auto;
+    width: 600px;
+}
+
+.help-column.right {
+    flex: 0 1 auto;
+    width: 700px;
+    align-items: flex-end;
+}
+
+.help-box {
+    background: rgba(15, 23, 42, 0.9);
+    /* 半透明ネイビー */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    color: #E2E8F0;
+    font-size: 13px;
+    line-height: 1.6;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+    /* 透過させてキャンバス操作を優先 */
+}
+
+.help-box:empty {
+    display: none;
+}
+
+.help-title {
+    color: #38BDF8;
+    /* Sky Blue */
+    margin: 0 0 12px 0;
+    font-size: 15px;
+    font-weight: 700;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+    padding-bottom: 6px;
+}
+
+.help-warn {
+    color: #ff4c4c;
+    font-weight: bold;
+}
+
+.help-highlight {
+    color: #ffff00;
+    font-weight: bold;
+    font-size: 1.4em;
+}
+
+.help-lp-link {
+    font-size: 12px;
+    color: #ffeb3b;
+    text-decoration: none;
+    font-weight: normal;
+    pointer-events: auto !important;
+    /* CRITICAL: Override .help-box pointer-events:none */
+    background: rgba(255, 235, 59, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 235, 59, 0.3);
+    transition: all 0.2s;
+    margin-left: auto;
+    /* Push to right if inside flex container */
+}
+
+.help-lp-link:hover {
+    background: rgba(255, 235, 59, 0.2);
+    border-color: rgba(255, 235, 59, 0.6);
+    color: #fff;
+}
+
+.help-title.no-border {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.help-box h4 {
+    color: #22C55E;
+    /* Green for subheaders */
+    margin: 12px 0 6px 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.help-box p {
+    margin: 8px 0;
+}
+
+.help-box ul {
+    margin: 8px 0 8px 18px;
+    padding: 0;
+}
+
+.help-box li {
+    margin-bottom: 4px;
+}
+
+/* ---------------------------------
+   Right Side: Bento Grid Cards
+--------------------------------- */
+.help-bento-container {
+    position: relative;
+    flex: 1;
+    min-width: 400px;
+    max-width: 800px;
+    /* Fluid width to fit one screen */
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 10001;
+    align-content: start;
+    padding-bottom: 60px;
+    padding-right: 12px;
+}
+
+/* Custom Scrollbar for Bento Area */
+.help-bento-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.help-bento-container::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.5);
+}
+
+.help-bento-container::-webkit-scrollbar-thumb {
+    background: rgba(51, 65, 85, 0.8);
+    /* slate-700 */
+    border-radius: 4px;
+}
+
+.help-bento-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(71, 85, 105, 0.8);
+    /* slate-600 */
+}
+
+.bento-card {
+    width: 100%;
+    /* Let the fixed container width dictate the size */
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 24px;
+    box-sizing: border-box;
+    color: #E2E8F0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* CRITICAL FIX: Make the right-side bento cards actually visible when help opens */
+.help-overlay.visible .bento-card {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.bento-card h4 {
+    color: transparent;
+    background-clip: text;
+    -webkit-background-clip: text;
+    background-image: linear-gradient(90deg, #38BDF8, #22C55E);
+    /* Sky to Green */
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.bento-card p {
+    font-size: 14px;
+    line-height: 1.6;
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+.bento-card p:last-child {
+    margin-bottom: 0;
+}
+
+.bento-card ul {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 20px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.bento-card li {
+    margin-bottom: 8px;
+}
+
+.bento-card li:last-child {
+    margin-bottom: 0;
+}
+
+.btn-help {
+    color: #94A3B8;
+    /* slate-400 */
+    background: transparent;
+    border: 1px solid #334155;
+    /* slate-700 */
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-help:hover {
+    color: #F8FAFC;
+    border-color: #22C55E;
+    background: rgba(34, 197, 94, 0.1);
+}
+
+.btn-help.active {
+    background-color: #3b82f6 !important;
+    /* Blue */
+    color: white !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+}
+
+.btn-help svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}
+
+/* Custom Tooltip for setting items (Always active for settings) */
+.setting-item {
+    position: relative;
+}
+
+.setting-item[data-tooltip] {
+    cursor: help;
+}
+
+.setting-item[data-tooltip]:hover::after {
+    display: none !important;
+}
+
+/* グローバルツールチップ本体 */
+.global-help-tooltip {
+    position: fixed;
+    z-index: 100000;
+    /* 最前面 */
+    background: rgba(15, 23, 42, 0.98);
+    /* 濃いネイビー */
+    color: #F8FAFC;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 11px;
+    line-height: 1.5;
+    border-left: 3px solid #3b82f6;
+    /* アクセントの青 */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    max-width: 320px;
+    pointer-events: none;
+    /* マウス操作を邪魔しない */
+    display: none;
+    /* 通常は非表示 */
+    white-space: pre-wrap;
+    /* 改行を反映 */
+    word-wrap: break-word;
+}
+
+body.help-active [data-help-key]:hover {
+    cursor: help;
+    outline: 1px dashed #3b82f6;
+}
+
+/* --- Rich Reset Button --- */
+.btn-reset-rich {
+    width: 100%;
+    background: linear-gradient(135deg, #d9534f, #c9302c);
+    border: 1px solid #ac2925;
+    border-top-color: #d43f3a;
+    color: #fff;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transition: all 0.2s ease;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+    letter-spacing: 0.5px;
+}
+
+.btn-reset-rich:hover {
+    background: linear-gradient(135deg, #e2615d, #d2322d);
+    border-color: #ac2925;
+    color: #fff;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+
+.btn-reset-rich:active {
+    background: #c9302c;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+    transform: translateY(1px);
+}
+
+/* --- Sample Download Section --- */
+#help-box-samples {
+    margin-top: 15px;
+    padding: 16px;
+}
+
+.sample-intro {
+    font-size: 13px;
+    margin-bottom: 12px;
+    color: var(--text-white);
+    opacity: 0.9;
+}
+
+.sample-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.sample-item {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.2s;
+}
+
+.sample-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.sample-item img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    /* 長辺にフィットさせる */
+    border-radius: 4px;
+    background: #000;
+    flex-shrink: 0;
+}
+
+.sample-item div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    flex: 1;
+    /* 文字溢れ防止と同枠幅の統一 */
+}
+
+.sample-item span {
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sample-item a {
+    font-size: 11px;
+    color: #38BDF8;
+    text-decoration: none;
+    background: rgba(56, 189, 248, 0.1);
+    padding: 3px 0;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 4px;
+    display: block;
+    text-align: center;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    pointer-events: auto;
+    /* リンクのみクリックを許可 */
+    transition: all 0.2s;
+}
+
+
+.sample-item a:hover {
+    background: #38BDF8;
+    color: #fff;
+}

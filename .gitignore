@@ -1,0 +1,48 @@
+﻿# Rust Source (Local Only)
+rust_core/
+
+# WebAssembly (Required for Execution)
+# pkg/ is now tracked
+
+# JS / Node
+node_modules/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Logs & Temp
+*.log
+err.log
+*.tmp
+*.bak
+
+# Scripts & Debug Tools (Local Only)
+server.py
+build.ps1
+safe_deploy.ps1
+js/AppController_check.js
+
+# Backup directories
+_backup_/
+
+# System/Agent generated
+.agent/
+.gemini/
+.idea/
+.vscode/
+task.md
+help_ui_design.md
+i18n_table.md
+
+# Test images / uploads in root
+/*.png
+/*.jpg
+/*.jpeg
+/*.webp
+!image/
+
+# Deployment folder
+deploy_final/
+
+

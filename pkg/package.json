@@ -1,0 +1,15 @@
+{
+  "name": "rcore",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "rcore_bg.wasm",
+    "rcore.js",
+    "rcore.d.ts"
+  ],
+  "main": "rcore.js",
+  "types": "rcore.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

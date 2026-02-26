@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" href="image/favicon.ico">
+    <title>Aaron Alpha v2.0</title>
+    <link rel="stylesheet" href="css/styles.css?v=3.2">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Visualization Toggle Styles */
+        #debug-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #0f0;
+            font-family: monospace;
+            font-size: 12px;
+            padding: 10px;
+            border-radius: 5px;
+            pointer-events: none;
+            z-index: 10000;
+            display: none;
+        }
+
+        .btn-toggle.red.active {
+            background-color: rgba(255, 50, 50, 0.3);
+            border-color: #ff5555;
+            color: #ffaaaa;
+        }
+
+        .btn-toggle.blue.active {
+            background-color: rgba(50, 50, 255, 0.3);
+            border-color: #5555ff;
+            color: #aaaaff;
+        }
+
+        .btn-toggle.green.active {
+            background-color: rgba(50, 255, 50, 0.3);
+            border-color: #55ff55;
+            color: #aaffaa;
+        }
+
+        .btn-toggle.yellow.active {
+            background-color: rgba(255, 235, 59, 0.3);
+            border-color: #ffeb3b;
+            color: #fff176;
+        }
+
+        /* Custom Matte Adjustment Mode */
+        #ui-blocker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            /* Semi-transparent gray */
+            z-index: 9999;
+            display: none;
+            cursor: not-allowed;
+        }
+
+        .drop-zone.adjust-mode {
+            background-color: #0050b4 !important;
+            border-color: #4da6ff !important;
+            z-index: 10000;
+            position: relative;
+            cursor: pointer !important;
+            box-shadow: 0 0 15px rgba(0, 80, 180, 0.5);
+        }
+
+        .drop-zone.adjust-mode .default-content {
+            display: none;
+        }
+
+        .drop-zone.adjust-mode .adjust-message {
+            display: flex !important;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-family: 'Inter', sans-serif;
+            text-align: center;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            /* Let clicks pass to container */
+        }
+
+        /* Custom Dialog Styles */
+        #custom-dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 200000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .dialog-card {
+            background: #1e1e1e;
+            border: 1px solid #444;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            color: #eee;
+        }
+
+        .dialog-header {
+            margin-bottom: 16px;
+        }
+
+        .dialog-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .dialog-body {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            white-space: pre-wrap;
+        }
+
+        .dialog-input-container {
+            margin-bottom: 24px;
+        }
+
+        .dialog-input {
+            width: 100%;
+            background: #2a2a2a;
+            border: 1px solid #555;
+            border-radius: 6px;
+            padding: 10px 12px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .dialog-input:focus {
+            border-color: #007bff;
+        }
+
+        .dialog-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .dialog-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: background 0.2s;
+        }
+
+        .dialog-btn-primary {
+            background: #007bff;
+            color: #fff;
+        }
+
+        .dialog-btn-primary:hover {
+            background: #0069d9;
+        }
+
+        .dialog-btn-secondary {
+            background: #444;
+            color: #eee;
+        }
+
+        .dialog-btn-secondary:hover {
+            background: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Global UI Lock Overlay -->
+    <div id="global-ui-lock"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:99999; background:rgba(0,0,0,0.5); cursor:wait;">
+        <div
+            style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; font-size:20px; font-weight:bold; font-family:'Inter', sans-serif;">
+            処理中...
+        </div>
+    </div>
+
+    <!-- No Image Guardrail Overlay (Side Panel) -->
+    <div id="no-image-panel-overlay"></div>
+
+    <!-- No Image Guardrail Overlay (Canvas/Viewport) -->
+    <div id="no-image-canvas-overlay">
+        <div class="no-image-message">
+            <span data-i18n="alert.noImage">画像を読み込んでください。</span>
+        </div>
+    </div>
+
+    <div id="ui-blocker"></div>
+
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Custom Dialog -->
+    <div id="custom-dialog-overlay">
+        <div class="dialog-card">
+            <div class="dialog-header">
+                <div id="dialog-title" class="dialog-title">Title</div>
+            </div>
+            <div id="dialog-body" class="dialog-body">Message goes here.</div>
+            <div id="dialog-input-container" class="dialog-input-container" style="display: none;">
+                <input type="text" id="dialog-input" class="dialog-input">
+            </div>
+            <div class="dialog-footer">
+                <button id="dialog-btn-cancel" class="dialog-btn dialog-btn-secondary"
+                    data-i18n="dialog.cancel">Cancel</button>
+                <button id="dialog-btn-no" class="dialog-btn dialog-btn-secondary" data-i18n="dialog.no">No</button>
+                <button id="dialog-btn-ok" class="dialog-btn dialog-btn-primary" data-i18n="dialog.ok">OK</button>
+                <button id="dialog-btn-yes" class="dialog-btn dialog-btn-primary" data-i18n="dialog.yes">Yes</button>
+            </div>
+        </div>
+    </div>
+    <header class="app-header" style="background:#000;">
+        <div class="header-left">
+            <button id="btn-settings" class="icon-btn" title="設定">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L3.16 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z">
+                    </path>
+                </svg>
+            </button>
+            <h1 class="app-title" style="display:inline-flex; align-items:center; margin-left:6px;">
+                <a href="https://lit.link/Aaronpoint" target="_blank" rel="noopener noreferrer" style="display:flex;">
+                    <img src="image/favicon.ico" alt="" style="width:24px; height:24px; margin-right:8px;">
+                </a>
+                Aaron Alpha <span class="version" style="margin-left:6px;">v1.0</span>
+                <span id="auth-status" class="auth-status"
+                    style="margin-left:12px; font-size:12px; padding:2px 6px; border-radius:4px;"></span>
+            </h1>
+        </div>
+    </header>
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="settings-modal" style="display:none;">
+        <div class="settings-content">
+            <div class="settings-header">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <h3 data-i18n="settings.title">設定</h3>
+                </div>
+                <button id="btn-close-settings" class="icon-btn">✕</button>
+            </div>
+            <div class="settings-body">
+                <div
+                    style="display:flex; align-items:flex-end; justify-content:space-between; gap: 20px; margin-bottom: 15px;">
+                    <div class="setting-item" data-i18n-title="help.tip.settings.lang"
+                        style="margin-bottom: 0; padding-bottom: 0;">
+                        <label data-i18n="settings.language" style="display:block; margin-bottom: 5px;">言語</label>
+                        <select id="sel-language">
+                            <option value="ja">日本語</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                    <!-- 認証発行ボタン (未認証時に有効) -->
+                    <button id="btn-issue-auth" class="setting-item" data-i18n-title="help.tip.settings.issueAuth"
+                        data-i18n="settings.issueAuthBtn"
+                        style="margin-bottom: 0; flex:1; font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; font-weight: 900; font-size: 20px; padding: 12px; background: linear-gradient(135deg, #ff4c4c, #c92a2a); color: #fff; border: 2px solid #ff0000; border-radius: 6px; cursor: pointer; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); transition: all 0.2s;">認証発行</button>
+                </div>
+                <div class="setting-item" style="margin-top: 15px;" data-i18n-title="help.tip.settings.auth">
+                    <label data-i18n="settings.authKey">認証キー</label>
+                    <div style="display:flex; gap:5px;">
+                        <input type="password" id="inp-auth-key" placeholder="Enter Key" style="flex:1;">
+                        <button id="btn-save-auth-key" data-i18n="settings.save">保存</button>
+                    </div>
+                    <div style="margin-top: 5px; text-align: right;">
+                        <button id="btn-reset-auth" class="btn-danger" style="font-size: 10px; padding: 2px 5px;"
+                            data-i18n="auth.resetAuth">認証リセット</button>
+                    </div>
+                </div>
+                <div class="setting-item"
+                    style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;"
+                    data-i18n-title="help.tip.settings.speed">
+                    <span data-i18n="settings.speedPriority">手動位置調整速度優先（低画質）</span>
+                    <label class="toggle-switch" style="margin: 0;">
+                        <input type="checkbox" id="chk-speed-priority">
+                        <span class="slider" style="margin: 0;"></span>
+                    </label>
+                </div>
+                <div class="setting-item"
+                    style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;"
+                    data-i18n-title="help.tip.settings.ext">
+                    <span data-i18n="settings.solidExt">ソリッドモード拡張</span>
+                    <label class="toggle-switch" style="margin: 0;">
+                        <input type="checkbox" id="chk-solid-ext">
+                        <span class="slider" style="margin: 0;"></span>
+                    </label>
+                </div>
+                <div class="setting-item"
+                    style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;"
+                    data-i18n-title="help.tip.settings.auto">
+                    <span data-i18n="settings.autoAlign">自動位置補正</span>
+                    <label class="toggle-switch" style="margin: 0;">
+                        <input type="checkbox" id="chk-auto-align" checked>
+                        <span class="slider" style="margin: 0;"></span>
+                    </label>
+                </div>
+                <div class="setting-item" style="margin-top: 15px;" data-i18n-title="help.tip.settings.undo">
+                    <label data-i18n="settings.undoLimit">Undo回数上限 (3〜10)</label>
+                    <input type="number" id="inp-undo-limit" min="3" max="10" value="3"
+                        style="width: 100%; padding: 4px; box-sizing: border-box; margin-top: 5px;">
+                </div>
+                <hr style="border: none; border-top: 1px solid #444; margin: 20px 0 10px 0;">
+                <div class="setting-item" style="text-align: right; border-bottom: none;"
+                    data-i18n-title="help.tip.settings.reset">
+                    <button id="btn-reset-settings" class="btn-danger" style="font-size: 12px; padding: 4px 10px;"
+                        data-i18n="settings.resetAll">全ての設定を初期化</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="main-container">
+        <aside class="control-panel">
+            <nav class="mode-tabs"><button class="tab-btn active" data-target="panel-basic"
+                    data-i18n="tab.basic">基本</button><button class="tab-btn" data-target="panel-trash"
+                    data-i18n="tab.trash">ゴミ取り</button><button class="tab-btn" data-target="panel-solid"
+                    data-i18n="tab.solid">不透明化</button></nav>
+            <div class="controls-content">
+                <div id="panel-basic" class="panel-page active">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                        <h3 data-i18n="basic.title" style="margin-bottom: 0;">基本モード</h3>
+                        <button class="btn-help" data-help-target="basic">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" />
+                            </svg>
+                            <span data-i18n="help.btn">使い方</span>
+                        </button>
+                    </div>
+                    <!-- Input Images (Basic内) -->
+                    <section class="input-section"
+                        style="display: flex; flex-direction: column; gap: 10px; height: auto; min-height: auto;">
+                        <div class="section-header" data-help-key="help.tip.basic.input"
+                            style="display:flex; justify-content:space-between; align-items:center; width: 100%;">
+                            <h3 style="margin:0; white-space: nowrap; border: none; padding: 0;"
+                                data-i18n="basic.inputImages">入力画像</h3><select id="sel-calc-mode"
+                                data-help-key="help.tip.basic.logic"
+                                style="font-size:11px; padding:2px 4px; background:#333; color:#fff; border:1px solid #555; border-radius:4px; max-width: 120px;">
+                                <option value="max" data-i18n="basic.logicMax">Max法</option>
+                                <option value="avg" selected data-i18n="basic.logicAvg">平均法</option>
+                                <option value="lum" data-i18n="basic.logicLum">Lum法</option>
+                            </select>
+                        </div>
+                        <div class="drop-group" style="display:flex; gap:10px; width: 100%;">
+                            <div class="drop-zone" id="drop-zone-black" data-help-key="help.tip.basic.input"
+                                style="flex:1; height: 110px; min-height: 110px;"><span class="label"
+                                    data-i18n="basic.blackInput">黒背景</span>
+                                <div class="preview-thumb"></div><input type="file" id="file-black" accept="image/*"
+                                    style="display: none;">
+                            </div>
+                            <div class="drop-zone" id="drop-zone-white" data-help-key="help.tip.basic.input"
+                                style="flex:1; height: 110px; min-height: 110px;"><span class="label"
+                                    data-i18n="basic.whiteInput">白背景</span>
+                                <div class="preview-thumb"></div><input type="file" id="file-white" accept="image/*"
+                                    style="display: none;">
+                            </div>
+                        </div>
+                        <!-- Auto-Offset Display -->
+                        <div id="offset-display" data-help-key="help.tip.basic.correction"
+                            style="font-size: 11px; color: #aaa; text-align: right; margin-top: 4px; font-family: 'Inter', sans-serif;">
+                            <span id="auto-align-msg"
+                                style="display: none; color: #ffcc00; margin-right: 10px;">Calculating
+                                Auto-Offset...</span>
+                            <span data-i18n="basic.correction">補正値</span>: <span id="val-offset-x">0</span>, <span
+                                id="val-offset-y">0</span>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <button type="button" id="btn-reset-all" class="btn-reset-rich"
+                                data-help-key="help.tip.basic.reset" style="width: 100%;" data-i18n="basic.resetAll">↺
+                                リセット</button>
+                        </div>
+                    </section>
+
+                    <div class="export-area" style="margin-top: 20px; padding-top: 0; border-top: none;">
+                        <div class="control-group common-bg-group">
+                            <div class="group-header" style="border-bottom: none;">
+                                <span data-i18n="bg.label">背景設定</span>
+                                <!-- Comparison Toggle (Inline) -->
+                                <label class="toggle-switch" title="Before/After 比較"
+                                    data-help-key="help.tip.basic.compare">
+                                    <input type="checkbox" class="chk-comparison-mode">
+                                    <span class="slider" style="width: 24px; height: 14px; margin-right: 4px;"></span>
+                                    <span class="label-text" style="font-size: 11px;"
+                                        data-i18n="bg.comparison">比較</span>
+                                </label>
+                            </div>
+
+                            <div class="bg-toggle-container" data-help-key="help.tip.basic.bg">
+                                <!-- Compact BG Toggle (Checkbox based) -->
+                                <label class="bg-toggle-switch">
+                                    <input type="checkbox" id="chk-bg-basic-color">
+                                    <span class="bg-toggle-label label-transparent" data-i18n="bg.checker">透明</span>
+                                    <span class="bg-toggle-label label-color" data-i18n="bg.color">カラー</span>
+                                </label>
+                                <input type="color" class="bg-common-color-picker" value="#000000" disabled
+                                    style="flex: 1; height:26px; padding:0; border:none; border-radius: 4px;">
+                            </div>
+                        </div>
+                        <button type="button" id="btn-export-a" class="btn-primary"
+                            data-help-key="help.tip.basic.export" data-i18n="basic.export">PNG出力</button>
+                    </div>
+
+                    <div style="margin-top:8px; text-align:center;">
+                        <img src="image/icon.png" alt=""
+                            style="width:80%; height:auto; border-radius:8px; display:inline-block;">
+                    </div>
+                </div>
+
+                <div id="panel-trash" class="panel-page">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                        <h3 data-i18n="trash.title" style="margin-bottom: 0;">ゴミ取りモード</h3>
+                        <button class="btn-help" data-help-target="trash">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" />
+                            </svg>
+                            <span data-i18n="help.btn">使い方</span>
+                        </button>
+                    </div>
+
+                    <!-- Threshold (Moved from below) -->
+                    <div class="control-group" data-help-key="help.tip.trash.thres">
+                        <label style="display:flex; justify-content:space-between;">
+                            <span>
+                                <span data-i18n="trash.threshold">ノイズ閾値</span> <span id="val-threshold">5</span>
+                            </span>
+                            <span style="font-size: 11px; color: #aaa; font-family: 'Inter', sans-serif;">
+                                <span data-i18n="basic.correction">補正値</span>: <span id="val-offset-x-trash">0</span>,
+                                <span id="val-offset-y-trash">0</span>
+                            </span>
+                        </label>
+                        <input type="range" id="rng-threshold" min="0" max="255" value="5">
+                    </div>
+
+                    <!-- Top Controls: Adjust Pos & Threshold -->
+                    <!-- Top Controls: Adjust Pos & Threshold -->
+                    <div class="drop-zone small" id="btn-align-mode" data-help-key="help.tip.trash.align"
+                        style="margin-bottom:10px; cursor:pointer;">
+                        <div class="default-content">
+                            <span class="label" data-i18n="trash.adjustPos">📍 位置調整</span>
+                        </div>
+                        <div class="adjust-message" style="display:none;">
+                            <span style="font-size:12px;" data-i18n="trash.adjustMsg1">↑↓←→ 位置調整</span>
+                        </div>
+                    </div>
+
+                    <!-- Matte Edit (Restored to Large Button) -->
+                    <div class="drop-zone small" id="btn-mode-matte" data-help-key="help.tip.trash.matte"
+                        style="margin-bottom:10px; cursor:pointer;">
+                        <div class="default-content">
+                            <span class="label" data-i18n="trash.editMatte">📐 範囲除外編集</span>
+                        </div>
+                        <div class="adjust-message matte-message" style="display:none;">
+                            <span style="font-size:12px;" data-i18n="trash.matteMsg1">範囲選択中...</span>
+                        </div>
+                    </div>
+
+                    <!-- Garbage Matte Inputs (Moved) -->
+                    <div class="control-group" data-help-key="help.tip.trash.matteNudge">
+                        <div class="grid-inputs small-inputs" style="margin-top:0;">
+                            <label><span data-i18n="trash.top">上</span> <input type="number" id="in-matte-t" value="0"
+                                    min="0"></label>
+                            <label><span data-i18n="trash.bottom">下</span> <input type="number" id="in-matte-b"
+                                    value="0" min="0"></label>
+                            <label><span data-i18n="trash.left">左</span> <input type="number" id="in-matte-l" value="0"
+                                    min="0"></label>
+                            <label><span data-i18n="trash.right">右</span> <input type="number" id="in-matte-r" value="0"
+                                    min="0"></label>
+                        </div>
+                    </div>
+
+                    <!-- Compact Mode Toggles -->
+                    <div class="control-group">
+                        <div class="inline-controls">
+                            <button id="btn-show-alpha" class="btn-toggle blue" data-help-key="help.tip.trash.binary"
+                                data-i18n="trash.btnTrash">2値表示</button>
+                            <!-- AA Button -->
+                            <button id="btn-trash-aa" class="btn-aa-toggle active" data-help-key="help.tip.trash.aa"
+                                data-i18n="trash.antiAlias">AA</button>
+                            <input type="checkbox" id="chk-trash-aa" checked style="display:none;">
+                        </div>
+                    </div>
+
+                    <!-- Threshold (Moved to Top) -->
+                    <!-- This block is moving to line 194 -->
+
+
+
+                    <!-- Reset & Export -->
+                    <div class="control-group" style="margin-top:10px;">
+                        <div class="inline-controls">
+                            <!-- Preview Button -->
+                            <button id="btn-ov-basic" class="btn-toggle blue btn-h-40"
+                                data-help-key="help.tip.trash.preview" data-i18n="trash.btnShowBasic">◎ プレビュー</button>
+                            <!-- Apply Solid Button -->
+                            <button id="btn-apply-solid" class="btn-toggle btn-h-40"
+                                data-help-key="help.tip.trash.applySolid" data-i18n="trash.applySolid">⚡ ソリッド適用</button>
+                        </div>
+                        <button id="btn-reset-trash" class="btn-danger btn-h-40" data-help-key="help.tip.trash.reset"
+                            style="width:100%; margin-top:8px;" data-i18n="trash.reset">↺ リセット</button>
+                    </div>
+
+                    <hr class="separator-line">
+
+                    <div class="export-area" style="margin-top: 15px; border-top: none; padding-top: 0;">
+                        <div class="control-group common-bg-group">
+                            <div class="group-header" style="border-bottom: none;">
+                                <span data-i18n="bg.label">背景設定</span>
+                                <label class="toggle-switch" title="Before/After 比較"
+                                    data-help-key="help.tip.trash.compare">
+                                    <input type="checkbox" class="chk-comparison-mode">
+                                    <span class="slider" style="width: 24px; height: 14px; margin-right: 4px;"></span>
+                                    <span class="label-text" style="font-size: 11px;"
+                                        data-i18n="bg.comparison">比較</span>
+                                </label>
+                            </div>
+                            <div class="bg-toggle-container" data-help-key="help.tip.trash.bg">
+                                <label class="bg-toggle-switch">
+                                    <input type="checkbox" id="chk-bg-trash-color">
+                                    <span class="bg-toggle-label label-transparent" data-i18n="bg.checker">透明</span>
+                                    <span class="bg-toggle-label label-color" data-i18n="bg.color">カラー</span>
+                                </label>
+                                <input type="color" class="bg-common-color-picker" value="#000000" disabled
+                                    style="flex: 1; height:26px; padding:0; border:none; border-radius: 4px;">
+                            </div>
+                        </div>
+                        <button type="button" id="btn-export-b" class="btn-primary"
+                            data-help-key="help.tip.trash.export" data-i18n="trash.export">PNG出力</button>
+                    </div>
+
+                    <div style="margin-top:8px; text-align:center;">
+                        <img src="image/icon.png" alt=""
+                            style="width:80%; height:auto; border-radius:8px; display:inline-block;">
+                    </div>
+                </div>
+
+                <div id="panel-solid" class="panel-page">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                        <h3 data-i18n="solid.title" style="margin-bottom: 0;">ソリッドモード</h3>
+                        <button class="btn-help" data-help-target="solid">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" />
+                            </svg>
+                            <span data-i18n="help.btn">使い方</span>
+                        </button>
+                    </div>
+
+                    <!-- Solid Level (Moved from below) -->
+                    <div class="control-group" data-help-key="help.tip.solid.level">
+                        <label style="display:flex; justify-content:space-between;">
+                            <span>
+                                <span data-i18n="solid.solidLevel">不透明閾値</span> <span id="val-solid-level">255</span>
+                            </span>
+
+                        </label>
+                        <input type="range" id="rng-solid-level" min="0" max="255" value="255">
+                    </div>
+
+                    <!-- D&D Zone -->
+                    <div class="drop-zone small" id="drop-zone-solid-source" data-help-key="help.tip.solid.custom"
+                        style="height: 80px; min-height: 80px; margin-bottom:10px;">
+                        <div class="default-content">
+                            <span class="label" data-i18n="solid.dropMatte">自作マットをロード</span>
+                            <div class="preview-thumb"></div>
+                        </div>
+                        <div class="adjust-message" style="display:none;">
+                            <span style="font-size:12px;" data-i18n="solid.adjustMsg1">位置調整中...</span>
+                        </div>
+                        <input type="file" id="file-solid-source" accept="image/*" style="display: none;">
+                    </div>
+
+                    <!-- View Mode & Viz -->
+                    <div class="control-group">
+                        <label data-i18n="solid.viewMode">表示 &amp; 操作</label>
+                        <div class="inline-controls">
+                            <button type="button" id="btn-overlay-mode" class="btn-toggle"
+                                data-help-key="help.tip.solid.preview" data-i18n="solid.compositeOff">👁️ プレビュー</button>
+                            <!-- Fill Button moved here -->
+                            <button type="button" id="btn-exec-raycast" class="btn-secondary"
+                                data-help-key="help.tip.solid.fill"
+                                style="height: 36px !important; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;"
+                                data-i18n="solid.rayFill">🎯 充填</button>
+                        </div>
+                        <div class="inline-controls" style="margin-top: 6px;">
+                            <button type="button" id="btn-view-solid" class="btn-toggle red"
+                                data-help-key="help.tip.solid.viz" data-i18n="solid.solidViz">🔴
+                                不透明</button>
+                            <!-- AA Button -->
+                            <button id="btn-solid-aa" class="btn-aa-toggle active" data-help-key="help.tip.trash.aa"
+                                data-i18n="solid.antiAlias">🌗
+                                AA</button>
+                            <input type="checkbox" id="chk-tool-aa" checked style="display:none;">
+                            <!-- Solid Mode Switch placeholder if needed, currently just visualization -->
+                        </div>
+                    </div>
+
+                    <!-- Solid Generation Params (Moved Level to top) -->
+                    <div class="control-group">
+                        <label style="display:flex; justify-content:space-between;" data-help-key="help.tip.solid.dist">
+                            <span>
+                                <span data-i18n="solid.rayDist">探索距離</span> <span id="val-raycast-dist">5px</span>
+                            </span>
+                        </label>
+                        <input type="range" id="rng-raycast-dist" min="0" max="50" value="5">
+
+                        <!-- v2 Debug Params (ソリッドモード拡張) -->
+                        <div id="solid-v2-debug-panel"
+                            style="margin-top: 10px; padding: 5px; border: 1px dashed #666; border-radius: 4px; background: rgba(0,0,0,0.2); display: none;">
+                            <div style="font-size: 10px; color: #aaa; margin-bottom: 5px;"
+                                data-i18n="solid.extCoastlineLogic">[拡張] Coastline Logic</div>
+                            <label style="display:flex; justify-content:space-between; font-size: 11px;"
+                                data-help-key="help.tip.solid.aaWidth">
+                                <span data-i18n="solid.aaWidth">AA幅</span> <span id="val-coast-dist">3px</span>
+                            </label>
+                            <input type="range" id="rng-coast-dist" min="0" max="20" value="3">
+
+                            <label
+                                style="display:flex; justify-content:space-between; font-size: 11px; margin-top: 5px;"
+                                data-help-key="help.tip.solid.aaThres">
+                                <span data-i18n="solid.aaThres">AA閾値</span> <span id="val-aa-thres">128</span>
+                            </label>
+                            <input type="range" id="rng-aa-thres" min="0" max="255" value="128">
+                        </div>
+                    </div>
+
+                    <!-- Duplicated Range Removed -->
+
+                    <div class="control-group" style="margin-top:10px;">
+                        <button id="btn-reset-solid" class="btn-danger" data-help-key="help.tip.solid.reset"
+                            style="width:100%; height:40px; font-size:14px;" data-i18n="solid.reset">↺
+                            モードリセット</button>
+                    </div>
+
+                    <hr class="separator-line">
+
+                    <!-- Export -->
+                    <div class="export-area" style="margin-top: 15px; border-top: none; padding-top: 0;">
+                        <div class="control-group common-bg-group">
+                            <div class="group-header" style="border-bottom: none;">
+                                <span data-i18n="bg.label">背景設定</span>
+                                <label class="toggle-switch" title="Before/After 比較"
+                                    data-help-key="help.tip.solid.compare">
+                                    <input type="checkbox" id="chk-comparison-mode-solid" class="chk-comparison-mode">
+                                    <span class="slider" style="width: 24px; height: 14px; margin-right: 4px;"></span>
+                                    <span class="label-text" style="font-size: 11px;"
+                                        data-i18n="bg.comparison">比較</span>
+                                </label>
+                            </div>
+                            <div class="bg-toggle-container" data-help-key="help.tip.solid.bg">
+                                <label class="bg-toggle-switch">
+                                    <input type="checkbox" id="chk-bg-solid-color">
+                                    <span class="bg-toggle-label label-transparent" data-i18n="bg.checker">透明</span>
+                                    <span class="bg-toggle-label label-color" data-i18n="bg.color">カラー</span>
+                                </label>
+                                <input type="color" class="bg-common-color-picker" value="#000000" disabled
+                                    style="flex: 1; height:26px; padding:0; border:none; border-radius: 4px;">
+                            </div>
+                        </div>
+                        <button type="button" id="btn-export-c" class="btn-primary"
+                            data-help-key="help.tip.solid.export" data-i18n="solid.export">PNG出力</button>
+                    </div>
+
+                    <div style="margin-top:8px; text-align:center;">
+                        <img src="image/icon.png" alt=""
+                            style="width:80%; height:auto; border-radius:8px; display:inline-block;">
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+
+        <main class="viewport" id="viewport-container">
+            <div class="canvas-wrapper">
+                <div class="canvas-bg" id="canvas-bg"></div>
+                <canvas id="main-canvas"></canvas>
+            </div>
+            <div class="viewport-overlay">
+                <span id="info-zoom">100%</span>
+            </div>
+
+            <!-- 操作ヒント・オーバーレイ -->
+            <div id="help-overlay" class="help-overlay">
+                <div class="help-column left">
+                    <div id="help-box-top-left" class="help-box"></div>
+                    <div id="help-box-bottom-left" class="help-box"></div>
+                    <!-- サンプル画像専用チップ -->
+                    <div id="help-box-samples" class="help-box"></div>
+                </div>
+                <div class="help-column right">
+                    <div id="help-box-top-right" class="help-box"></div>
+                </div>
+            </div>
+
+            <!-- デバッグパネル (Cursor Info) -->
+            <div id="debug-panel">
+                X:<span id="dbg-x">-</span> Y:<span id="dbg-y">-</span><br>
+                Alpha:<span id="dbg-soft">-</span>
+            </div>
+
+            <!-- ヘルプオーバーレイ (Bento Grid & Tooltip) -->
+        </main>
+    </div>
+
+    <script type="module" src="js/main.js?v=5.3"></script>
+    <div id="global-help-tooltip" class="global-help-tooltip"></div>
+</body>
+
+</html>

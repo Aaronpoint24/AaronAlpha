@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AaronAlpha - Image Extraction Examples</title>
+    <meta name="description" content="AaronAlphaの高品質な画像切り抜き精度のサンプルをご覧いただけます。">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header class="header">
+        <h1 class="title" data-i18n="title">Extraction Precision</h1>
+        <p class="subtitle" data-i18n="subtitle">Experience the ultimate image extraction tool.</p>
+    </header>
+
+    <main class="container">
+        <!-- Sample 1 -->
+        <section class="sample-section">
+            <div class="slider-container">
+                <img src="../image/Sample01_Black_AaronAlpha_Solid.png" class="image-after" alt="Extracted Image 1">
+                <div class="image-before-wrapper">
+                    <img src="../image/Sample01_Black.jpg" class="image-before" alt="Original Image 1">
+                </div>
+                <input type="range" min="0" max="100" value="50" class="slider" aria-label="Image comparison slider">
+                <div class="slider-handle">
+                    <div class="slider-handle-line"></div>
+                    <div class="slider-handle-circle">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="description">
+                <h3 data-i18n="sample1_title">Sample 01: Complex Hair Selection</h3>
+                <p data-i18n="sample1_desc">複雑な髪の毛や細い境界線も、黒背景から完全に分離して透過処理します。エッジのフリンジを残しません。</p>
+            </div>
+        </section>
+
+        <!-- Sample 2 -->
+        <section class="sample-section">
+            <div class="slider-container">
+                <img src="../image/Sample02_Black_AaronAlpha_Solid.png" class="image-after" alt="Extracted Image 2">
+                <div class="image-before-wrapper">
+                    <img src="../image/Sample02_Black.jpg" class="image-before" alt="Original Image 2">
+                </div>
+                <input type="range" min="0" max="100" value="50" class="slider" aria-label="Image comparison slider">
+                <div class="slider-handle">
+                    <div class="slider-handle-line"></div>
+                    <div class="slider-handle-circle">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="description">
+                <h3 data-i18n="sample2_title">Sample 02: Translucent Objects</h3>
+                <p data-i18n="sample2_desc">半透明な素材や、背景の色が透けている部分も、元の透明度を正確に再現して抜き出します。</p>
+            </div>
+        </section>
+
+        <!-- Sample 3 -->
+        <section class="sample-section">
+            <div class="slider-container">
+                <img src="../image/Sample03_Black_AaronAlpha_Solid.png" class="image-after" alt="Extracted Image 3">
+                <div class="image-before-wrapper">
+                    <img src="../image/Sample03_Black.jpg" class="image-before" alt="Original Image 3">
+                </div>
+                <input type="range" min="0" max="100" value="50" class="slider" aria-label="Image comparison slider">
+                <div class="slider-handle">
+                    <div class="slider-handle-line"></div>
+                    <div class="slider-handle-circle">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="description">
+                <h3 data-i18n="sample3_title">Sample 03: Motion Blur</h3>
+                <p data-i18n="sample3_desc">動きによるブレや、カメラの被写界深度によるボケ味があるエッジも自然な状態で切り抜きます。</p>
+            </div>
+        </section>
+
+        <!-- Sample 4 -->
+        <section class="sample-section">
+            <div class="slider-container">
+                <img src="../image/Sample04_Black_AaronAlpha_Solid.png" class="image-after" alt="Extracted Image 4">
+                <div class="image-before-wrapper">
+                    <img src="../image/Sample04_Black.jpg" class="image-before" alt="Original Image 4">
+                </div>
+                <input type="range" min="0" max="100" value="50" class="slider" aria-label="Image comparison slider">
+                <div class="slider-handle">
+                    <div class="slider-handle-line"></div>
+                    <div class="slider-handle-circle">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="description">
+                <h3 data-i18n="sample4_title">Sample 04: Fire and Smoke</h3>
+                <p data-i18n="sample4_desc">炎や煙のような不定形で境界が曖昧な対象物も、ディテールを損なうことなく美しく分離します。</p>
+            </div>
+        </section>
+
+        <!-- Sample 5 -->
+        <section class="sample-section">
+            <div class="slider-container">
+                <img src="../image/Sample05_Black_AaronAlpha_Solid.png" class="image-after" alt="Extracted Image 5">
+                <div class="image-before-wrapper">
+                    <img src="../image/Sample05_Black.jpg" class="image-before" alt="Original Image 5">
+                </div>
+                <input type="range" min="0" max="100" value="50" class="slider" aria-label="Image comparison slider">
+                <div class="slider-handle">
+                    <div class="slider-handle-line"></div>
+                    <div class="slider-handle-circle">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="description">
+                <h3 data-i18n="sample5_title">Sample 05: intricate Details</h3>
+                <p data-i18n="sample5_desc">レースや網目など、非常に細かく複雑な隙間を持つ被写体でも、背景を綺麗に取り除きます。</p>
+            </div>
+        </section>
+
+        <!-- Sample 6 -->
+        <section class="sample-section">
+            <div class="slider-container">
+                <img src="../image/Sample06_Black_AaronAlpha_Solid.png" class="image-after" alt="Extracted Image 6">
+                <div class="image-before-wrapper">
+                    <img src="../image/Sample06_Black.jpg" class="image-before" alt="Original Image 6">
+                </div>
+                <input type="range" min="0" max="100" value="50" class="slider" aria-label="Image comparison slider">
+                <div class="slider-handle">
+                    <div class="slider-handle-line"></div>
+                    <div class="slider-handle-circle">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="description">
+                <h3 data-i18n="sample6_title">Sample 06: High Contrast Edges</h3>
+                <p data-i18n="sample6_desc">ハイコントラストでエッジに不要な光の輪（ハロー）ができやすい画像でも、ソリッドで完璧な輪郭に仕上げます。</p>
+            </div>
+        </section>
+
+        <!-- Controls UI (Floating) -->
+        <div class="floating-controls">
+            <!-- Help Group -->
+            <div class="control-group help-group">
+                <div class="help-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="help-icon">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </div>
+                <div class="help-tooltip">
+                    <div class="help-item">
+                        <span class="help-key" data-i18n="help_zoom_key">Wheel</span>
+                        <span class="help-desc" data-i18n="help_zoom_desc">Zoom</span>
+                    </div>
+                    <div class="help-item">
+                        <span class="help-key" data-i18n="help_pan_key">Right Drag</span>
+                        <span class="help-desc" data-i18n="help_pan_desc">Move</span>
+                    </div>
+                    <div class="help-item">
+                        <span class="help-key" data-i18n="help_reset_key">L+R Click</span>
+                        <span class="help-desc" data-i18n="help_reset_desc">Reset</span>
+                    </div>
+                </div>
+            </div>
+            <div class="control-divider"></div>
+
+            <div class="control-group">
+                <span class="control-label" data-i18n="bg_label">Background</span>
+                <div class="bg-options">
+                    <button class="bg-btn bg-toggle active" data-bg="transparent" data-i18n="bg_transparent">透過</button>
+                    <button class="bg-btn bg-toggle" data-bg="color" data-i18n="bg_color">カラー</button>
+                    <div class="color-picker-wrapper disabled" id="colorPickerWrapper">
+                        <input type="color" id="bgColorPicker" value="#000000" aria-label="Choose background color">
+                    </div>
+                </div>
+            </div>
+            <div class="control-divider"></div>
+            <a href="https://lit.link/Aaronpoint" target="_blank" rel="noopener noreferrer" class="external-link">
+                <span data-i18n="link_aaron">AaronAlphaはこちら</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="external-icon">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+            </a>
+            <div class="control-divider"></div>
+            <div class="control-group lang-group">
+                <button class="lang-btn active" data-lang="ja">JA</button>
+                <button class="lang-btn" data-lang="en">EN</button>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 AaronAlpha. <span data-i18n="footer">All rights reserved.</span></p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
