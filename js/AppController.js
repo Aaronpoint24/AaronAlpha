@@ -656,6 +656,13 @@ export class AppController {
                     } else {
                         this.updateNoImageLock(false);
                     }
+
+                    // アーロン様のご要望: 画像未入力・操作ロック状態であっても、
+                    // ヘルプがONの場合は現在のタブに合わせたヘルプテキストを表示させる。
+                    if (this.isHelpActive) {
+                        this.updatePreviewHelp();
+                    }
+
                     // 未入力時はタブの見た目だけ切り替え、初期化系ロジックはスキップする
                     return;
                 } else {
