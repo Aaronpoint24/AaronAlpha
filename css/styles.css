@@ -1141,6 +1141,9 @@ body.help-active .help-overlay {
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    /* アーロン様ご要望: 画像未入力ガード網(z-index:50)の上でもクリック可能にする */
+    position: relative;
+    z-index: 51;
 }
 
 .btn-help:hover {
