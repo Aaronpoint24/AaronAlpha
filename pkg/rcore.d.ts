@@ -100,18 +100,20 @@ export function process_export(mode: string, bg_color_hex: string | null | undef
  */
 export function reset_solid_mode(): void;
 
+export function reset_trash_mask(): void;
+
 export function set_calc_mode(mode: number): void;
 
 export function set_offset(ox: number, oy: number): void;
 
-export function update_alignment_alpha_only(offset_x: number, offset_y: number, t: number, b: number, l: number, r: number, margin: number, vp_x: number, vp_y: number, vp_w: number, vp_h: number, speed_priority: boolean): void;
+export function update_alignment_alpha_only(offset_x: number, offset_y: number, t: number, b: number, l: number, r: number, margin: number, vp_x: number, vp_y: number, vp_w: number, vp_h: number, speed_priority: boolean, threshold: number): void;
 
 /**
  * ソリッドモードのパラメータを更新し、solid_bufferを再計算する
  */
 export function update_solid_params(solid_level: number, edge_thres: number, ray_dist: number, gm_t: number, gm_b: number, gm_l: number, gm_r: number): void;
 
-export function update_trash_mode(threshold: number, type_of_alpha: number, overlay_mode: number, t: number, b: number, l: number, r: number): void;
+export function update_trash_mode(threshold: number, type_of_alpha: number, overlay_mode: number, t: number, b: number, l: number, r: number, vp_x: number, vp_y: number, vp_w: number, vp_h: number): void;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
@@ -123,6 +125,7 @@ export interface InitOutput {
     readonly build_solid_base_image: () => void;
     readonly build_solid_overlay: () => void;
     readonly build_solid_preview: () => void;
+    readonly clear_solid_applied_flag: () => void;
     readonly commit_solid_source_temp: () => void;
     readonly confirm_offset: (a: number, b: number) => void;
     readonly copy_c1s_to_solid_buffer: () => void;
@@ -152,13 +155,13 @@ export interface InitOutput {
     readonly preview_solid_source_temp: () => void;
     readonly process_export: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
     readonly reset_solid_mode: () => void;
+    readonly reset_trash_mask: () => void;
     readonly set_calc_mode: (a: number) => void;
     readonly set_offset: (a: number, b: number) => void;
-    readonly update_alignment_alpha_only: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number) => void;
+    readonly update_alignment_alpha_only: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: number) => void;
     readonly update_solid_params: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-    readonly update_trash_mode: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+    readonly update_trash_mode: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number) => void;
     readonly init_rust: () => void;
-    readonly clear_solid_applied_flag: () => void;
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;

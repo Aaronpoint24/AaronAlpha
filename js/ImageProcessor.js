@@ -34,7 +34,8 @@ import initWasm, {
     process_export,
     copy_c1s_to_solid_buffer,
     apply_solid_to_alpha_zero,
-    clear_solid_applied_flag
+    clear_solid_applied_flag,
+    reset_trash_mask
 } from '../pkg/rcore.js';
 
 /**
@@ -238,6 +239,7 @@ export class ImageProcessor {
         const ax = this.autoOffset ? this.autoOffset.x : 0;
         const ay = this.autoOffset ? this.autoOffset.y : 0;
         this.offset = { x: ax, y: ay };
+        set_offset(ax, ay); // WASM側のオフセットも同期
         console.log(`[ImageProcessor] resetToAutoAlign: Restored to auto-offset (${ax}, ${ay})`);
     }
 
@@ -248,21 +250,29 @@ export class ImageProcessor {
         console.log('[ImageProcessor] initTrashMode: WASM buffers re-initialized');
     }
 
-    updateTrashMode() {
+    resetTrashMask() {
+        if (!this.wasm) return;
+        reset_trash_mask();
+        console.log('[ImageProcessor] resetTrashMask: WASM mask buffer reset');
+    }
+
+    updateTrashMode(viewPort = null) {
         if (!this.wasm) return;
         const p = this.params;
         const g = this.garbageMatte;
+        const vp = viewPort || { x: 0, y: 0, w: 0, h: 0 };
 
         const typeVal = (p.typeOfAlpha === 'soft') ? 1 : 0;
         const overlayVal = (p.overlayMode) ? 1 : 0;
 
-        console.log(`[ImageProcessor/Log] >>> CALL: update_trash_mode (Thres: ${p.threshold}, Type: ${p.typeOfAlpha}, Overlay: ${p.overlayMode})`);
+        console.log(`[ImageProcessor/Log] >>> CALL: update_trash_mode (Thres: ${p.threshold}, Type: ${p.typeOfAlpha}, Overlay: ${p.overlayMode}, VP: ${vp.x},${vp.y} ${vp.w}x${vp.h})`);
 
         update_trash_mode(
             p.threshold,
             typeVal,
             overlayVal,
-            g.t, g.b, g.l, g.r
+            g.t, g.b, g.l, g.r,
+            vp.x, vp.y, vp.w, vp.h
         );
         console.log(`[ImageProcessor/Log] <<< FINISH: update_trash_mode`);
     }
@@ -275,12 +285,14 @@ export class ImageProcessor {
 
         const g = garbageMatte || { t: 0, b: 0, l: 0, r: 0 };
         const vp = viewPort || { x: 0, y: 0, w: 0, h: 0 }; // Default: No viewport limit (0,0,0,0) -> handled in Rust
+        const threshold = this.params.threshold || 5;
 
         update_alignment_alpha_only(
             offX, offY,
             g.t, g.b, g.l, g.r, margin,
             vp.x, vp.y, vp.w, vp.h,
-            speedPriority
+            speedPriority,
+            threshold
         );
     }
 
@@ -317,7 +329,8 @@ export class ImageProcessor {
         console.log(`[ImageProcessor/Log] >>> START: process("${targetBuffer}") skipUpdate=${skipUpdate}`);
 
         if (!skipUpdate && (targetBuffer === 'alphaB1' || targetBuffer === 'soft' || targetBuffer === 'hard')) {
-            this.updateTrashMode();
+            // NOTE: skipUpdate=false の場合は AppController から渡された viewport を使う運用
+            this.updateTrashMode(this._lastVP);
         }
 
         let ptr = 0;
@@ -352,10 +365,10 @@ export class ImageProcessor {
         }
 
         const view = new Uint8ClampedArray(this.memory.buffer, ptr, size);
-        // Create a copy to prevent "detached buffer" errors when WASM memory grows
-        const dataCopy = new Uint8ClampedArray(view);
-        const result = new ImageData(dataCopy, w, h);
-        console.log(`[ImageProcessor/Log] <<< END: process("${targetBuffer}") - Generated ImageData ${w}x${h} (Copied)`);
+        // [OPTIMIZED] ゼロコピー: Uint8ClampedArray を直接 ImageData に渡す
+        // WASM メモリ拡張による detached エラーは RenderEngine 側で catch して無視する運用
+        const result = new ImageData(view, w, h);
+        console.log(`[ImageProcessor/Log] <<< END: process("${targetBuffer}") - Generated ImageData ${w}x${h} (Zero-Copy)`);
         return result;
     }
 
@@ -405,13 +418,13 @@ export class ImageProcessor {
     // ====== Solid Mode Methods ======
 
     /** ソリッドモードのパラメータ更新（閾値変更時に呼ぶ） */
-    updateSolidMode(solidLevel, edgeThres = 64, rayDist = 5, coastDist = 3, aaThres = 128, dirCount = 6) {
+    updateSolidMode(solidLevel, edgeThres = 64, rayDist = 5) {
         if (!this.wasm) return;
         const gm = this.garbageMatte || { t: 0, b: 0, l: 0, r: 0 };
-        update_solid_params(solidLevel, edgeThres, rayDist, coastDist, aaThres, dirCount, gm.t, gm.b, gm.l, gm.r);
+        update_solid_params(solidLevel, edgeThres, rayDist, gm.t, gm.b, gm.l, gm.r);
         // ポインタが変わる可能性はないが念のため取得
         this.solidPtr = get_solid_buffer_ptr();
-        console.log(`[ImageProcessor] updateSolidMode: level=${solidLevel}, coastDist=${coastDist}, aaThres=${aaThres}, dirCount=${dirCount}, gm=[${gm.t},${gm.b},${gm.l},${gm.r}]`);
+        console.log(`[ImageProcessor] updateSolidMode: level=${solidLevel}, gm=[${gm.t},${gm.b},${gm.l},${gm.r}]`);
     }
 
     /** 充填（ショット）を実行 */
@@ -602,12 +615,13 @@ export class ImageProcessor {
     applySolidToAlphaZero() {
         if (!this.wasm) return;
         apply_solid_to_alpha_zero();
-        console.log('[ImageProcessor] Applied Solid to AlphaZero');
+        console.log('[ImageProcessor] applySolidToAlphaZero: Solid effect burned into alpha_zero_buffer');
     }
 
     clearSolidAppliedFlag() {
         if (!this.wasm) return;
         clear_solid_applied_flag();
+        console.log('[ImageProcessor] clearSolidAppliedFlag: is_solid_applied reset to false');
     }
 
     /**
