@@ -22,7 +22,11 @@ export function build_solid_overlay(): void;
 
 export function build_solid_preview(): void;
 
+export function burn_in_trash_mask(): void;
+
 export function clear_solid_applied_flag(): void;
+
+export function clear_solid_edits_only(): void;
 
 export function commit_solid_source_temp(): void;
 
@@ -125,7 +129,9 @@ export interface InitOutput {
     readonly build_solid_base_image: () => void;
     readonly build_solid_overlay: () => void;
     readonly build_solid_preview: () => void;
+    readonly burn_in_trash_mask: () => void;
     readonly clear_solid_applied_flag: () => void;
+    readonly clear_solid_edits_only: () => void;
     readonly commit_solid_source_temp: () => void;
     readonly confirm_offset: (a: number, b: number) => void;
     readonly copy_c1s_to_solid_buffer: () => void;
