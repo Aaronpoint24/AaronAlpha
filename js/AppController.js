@@ -907,6 +907,9 @@ export class AppController {
             else this.startMatteEditing();
         });
         document.getElementById('btn-reset-trash')?.addEventListener('click', () => {
+            // [UX改善] リセット前に現在の消しゴム範囲をベイクから削り取る（ゾンビ現象解消）
+            this.processor.burnInTrashMask();
+
             // ガーベージマットをリセット
             this.processor.updateGarbageMatte('t', 0); this.processor.updateGarbageMatte('b', 0);
             this.processor.updateGarbageMatte('l', 0); this.processor.updateGarbageMatte('r', 0);
@@ -1310,8 +1313,9 @@ export class AppController {
                 this.toggleHelpMode();
             }
 
-            console.log('[AppController] Resetting Solid Mode...');
-            this.processor.resetSolidMode();
+            console.log('[AppController] Resetting Solid Mode (Keeping Bake)...');
+            // ベイクを残し、Live編集(C1s)だけをクリアする
+            this.processor.clearSolidEditsOnly();
             // オーバーレイ表示をクリア
             this.renderEngine.setOverlay(null);
             // スライダーもリセット

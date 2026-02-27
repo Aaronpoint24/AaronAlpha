@@ -75,8 +75,16 @@ export function build_solid_preview() {
     wasm.build_solid_preview();
 }
 
+export function burn_in_trash_mask() {
+    wasm.burn_in_trash_mask();
+}
+
 export function clear_solid_applied_flag() {
     wasm.clear_solid_applied_flag();
+}
+
+export function clear_solid_edits_only() {
+    wasm.clear_solid_edits_only();
 }
 
 export function commit_solid_source_temp() {

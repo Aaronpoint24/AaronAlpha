@@ -35,6 +35,8 @@ import initWasm, {
     copy_c1s_to_solid_buffer,
     apply_solid_to_alpha_zero,
     clear_solid_applied_flag,
+    burn_in_trash_mask,
+    clear_solid_edits_only,
     reset_trash_mask
 } from '../pkg/rcore.js';
 
@@ -622,6 +624,18 @@ export class ImageProcessor {
         if (!this.wasm) return;
         clear_solid_applied_flag();
         console.log('[ImageProcessor] clearSolidAppliedFlag: is_solid_applied reset to false');
+    }
+
+    clearSolidEditsOnly() {
+        if (!this.wasm) return;
+        clear_solid_edits_only();
+        console.log('[ImageProcessor] clearSolidEditsOnly: c1s_buffer cleared, bake kept');
+    }
+
+    burnInTrashMask() {
+        if (!this.wasm) return;
+        burn_in_trash_mask();
+        console.log('[ImageProcessor] burnInTrashMask: Deleted eraser area from bake mask');
     }
 
     /**
