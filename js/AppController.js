@@ -51,6 +51,11 @@ export class AppController {
         this.speedPriority = false; // 位置調整時速度優先（低画質）モード
         this.isHelpActive = false;   // トグル式ヘルプモードの状態
 
+        this._lastScale = 1.0;
+        this._lastPan = { x: 0, y: 0 };
+        this._needsSmartRefresh = false; // 縮小・移動時の全域リフレッシュ要求
+        this._bufferState = 'full';     // 'full' (全域計算済み) or 'partial' (ビューポート内のみ)
+
         this.init();
     }
 
@@ -90,35 +95,27 @@ export class AppController {
             // Load settings from localStorage
             this.loadSettings();
 
-            // ビューポート変更時：フラグが立っていれば1回だけ全体計算して解除
-            this._needsFullRefresh = false;
-            this.renderEngine.onViewChange = () => {
+            // ビューポート変更時：
+            this.renderEngine.onViewChange = (scale, pan) => {
+                // スマートリフレッシュ（全域計算）を「最初の1フレーム」で同期的に実行する
+                if (this._bufferState === 'partial') {
+                    const isZoomingOut = scale < this._lastScale;
+                    const isPanning = Math.abs(pan.x - this._lastPan.x) > 1 || Math.abs(pan.y - this._lastPan.y) > 1;
+
+                    if (isZoomingOut || isPanning) {
+                        this._needsSmartRefresh = true;
+                        // アーロン様の指示通り、非同期を介さず「その場で直撃して」更新を実行
+                        // これにより1フレーム目で full 状態になり、2フレーム目以降の計算を物理的に遮断する
+                        this.updateMainView();
+                    }
+                }
+                this._lastScale = scale;
+                this._lastPan = { ...pan };
+
+                // 位置調整モード(Alignment)用の特殊フラグ（維持）
                 if (this.currentMode === 'trash' && this.isTrashAlignMode && this._needsFullRefresh) {
                     this._needsFullRefresh = false;
-                    // 全体計算（ビューポート制限なし: w=0,h=0 → Rust側で全域扱い）
-                    this.processor.updateAlignmentAlphaOnly(
-                        this.processor.offset.x, this.processor.offset.y,
-                        this.processor.garbageMatte, 12,
-                        { x: 0, y: 0, w: 0, h: 0 }, this.speedPriority
-                    );
-
-                    // [Fix] Fetch full image data after full recalculation
-                    // renderEngine holds only the previous (potentially cropped/partial) image data.
-                    let img = null;
-                    if (this.typesOfAlpha === 'soft') {
-                        img = this.processor.process('soft', true);
-                    } else {
-                        img = this.processor.process('hard', true);
-                        if (this.trashOverlay) {
-                            const overlay = this.processor.process('alphaB1', true);
-                            this.renderEngine.setOverlay(overlay);
-                        }
-                    }
-                    if (img) {
-                        this.renderEngine.setImage(img, false); // false = keep view
-                    } else {
-                        this.renderEngine.requestRender();
-                    }
+                    this.requestUpdate();
                 }
             };
 
@@ -140,12 +137,6 @@ export class AppController {
             if (autoAlign !== null) {
                 const el = document.getElementById('chk-auto-align');
                 if (el) el.checked = (autoAlign === 'true');
-            }
-
-            const bgType = localStorage.getItem('aaronAlpha_bgType');
-            const bgColor = localStorage.getItem('aaronAlpha_bgColor');
-            if (bgType) {
-                this.setCanvasBackground(bgType, bgColor);
             }
 
             if (speedPriority !== null) {
@@ -198,9 +189,7 @@ export class AppController {
             'aaronAlpha_speedPriority',
             'aaronAlpha_autoAlign',
             'aaronAlpha_solidExt',
-            'aaronAlpha_undoLimit',
-            'aaronAlpha_bgType',
-            'aaronAlpha_bgColor'
+            'aaronAlpha_undoLimit'
         ];
         keys.forEach(k => {
             try { localStorage.removeItem(k); } catch (e) { }
@@ -372,6 +361,7 @@ export class AppController {
     }
 
     requestUpdate(recalc = false) {
+        if (recalc) this._needsSmartRefresh = true;
         if (this.pendingUpdate) return;
         this.pendingUpdate = true;
         requestAnimationFrame(() => {
@@ -383,13 +373,13 @@ export class AppController {
         });
     }
 
-    updateMainView() {
+    updateMainView(skipUpdate = false) {
         if (!this.processor.hasImages()) {
             console.log('[AppController/Log] updateMainView skipped: No images available.');
             return;
         }
 
-        console.log(`[AppController/Log] >>> START: updateMainView (Mode: ${this.currentMode})`);
+        console.log(`[AppController/Log] >>> START: updateMainView (Mode: ${this.currentMode}, skipUpdate: ${skipUpdate})`);
         const p = this.processor;
         const re = this.renderEngine;
         let img = null;
@@ -400,34 +390,51 @@ export class AppController {
                 if (this.hasEnteredTrash) {
                     // trash モード経験済み: mask_buffer を反映した結果を表示
                     console.log('[AppController/Log] --- Path: basic (with mask applied via alphaB1)');
-                    img = p.process('alphaB1', false);
+                    img = p.process('alphaB1', skipUpdate);
                 } else {
                     console.log('[AppController/Log] --- Path: basic extraction');
-                    img = p.process('basic');
+                    img = p.process('basic', skipUpdate);
                 }
             } else if (this.currentMode === 'trash') {
+                const vp = re.getViewPort();
+                // バッファが 'full' の場合は計算を完全にスキップして描画のみ行う
+                // (ただし、スライダー操作等により calcVP がセットされる場合は計算が必要)
+
+                let calcVP = vp;
+                if (this._needsSmartRefresh) {
+                    console.log('[AppController/Log] --- Smart Refresh Triggered (State: full-sync)');
+                    calcVP = null; // 全域計算
+                    this._needsSmartRefresh = false;
+                    this._bufferState = 'full'; // 全域計算したので 'full' に
+                }
+
                 if (this.isTrashAlignMode) {
                     console.log('[AppController/Log] --- Path: trash alignment (Soft Alpha)');
-                    img = p.process('soft', false);
-                } else if (this.typesOfAlpha === 'soft') {
-                    if (this.trashOverlay) {
-                        // ソフトα+プレビューON: カラー透過PNGに差し替え表示
-                        console.log('[AppController/Log] --- Path: soft + overlay -> alphaB1 REPLACE');
-                        img = p.process('alphaB1', false);
-                        // overlayImg は設定しない（差し替えのため）
-                    } else {
-                        // ソフトα表示: グレースケール
-                        console.log('[AppController/Log] --- Path: trash soft (grayscale)');
-                        img = p.process('soft', false);
+                    // 位置調整モード中でも、必要があれば全域・不要ならビューポート限定
+                    if (!skipUpdate) {
+                        p.updateAlignmentAlphaOnly(
+                            p.offset.x, p.offset.y,
+                            p.garbageMatte, 12,
+                            calcVP, this.speedPriority
+                        );
                     }
+                    img = p.process('soft', true); // 引数で skipUpdate=true (既に呼んだか、あるいは意図的なスキップ)
                 } else {
-                    // 二値表示: hard_matがベース
-                    console.log('[AppController/Log] --- Path: trash hard');
-                    img = p.process('hard', false);
-                    // オーバーレイONの時はカラー透過を上乗せ
-                    if (this.trashOverlay) {
-                        console.log('[AppController/Log] --- Path: hard + overlay (alphaB1)');
-                        overlayImg = p.process('alphaB1', false);
+                    // 通常モード
+                    p._lastVP = calcVP;
+                    if (this.typesOfAlpha === 'soft') {
+                        // アルファ表示: プレビューON時は alphaB1 ととの「差し替え」
+                        if (this.trashOverlay) {
+                            img = p.process('alphaB1', skipUpdate);
+                        } else {
+                            img = p.process('soft', skipUpdate);
+                        }
+                    } else {
+                        // 二値表示: プレビューON時は二値の上に alphaB1 を「表示（かぶせる）」
+                        img = p.process('hard', skipUpdate);
+                        if (this.trashOverlay) {
+                            overlayImg = p.process('alphaB1', skipUpdate);
+                        }
                     }
                 }
             } else if (this.currentMode === 'solid') {
@@ -543,14 +550,20 @@ export class AppController {
         this.processor.updateParams('overlayMode', this._overlayMode);
 
         document.getElementById('ui-blocker').style.display = 'none';
-        document.querySelector('#btn-align-mode .adjust-message').style.display = 'none';
+        const adjustMsg = document.querySelector('#btn-align-mode .adjust-message');
+        if (adjustMsg) adjustMsg.style.display = 'none';
         const vp = document.getElementById('viewport-container');
-        vp.style.zIndex = '';
-        vp.style.position = '';
-        document.getElementById('btn-align-mode').classList.remove('adjust-mode');
+        if (vp) {
+            vp.style.zIndex = '';
+            vp.style.position = '';
+        }
+        document.getElementById('btn-align-mode')?.classList.remove('adjust-mode');
         this.setAdjustmentUIState(false);
         this.updateTrashUI();
-        this.requestUpdate(true);
+
+        // 【重要】確定時は必ず全域を同期して見た目の齟齬を無くす
+        this._needsSmartRefresh = true;
+        this.updateMainView();
     }
 
     startMatteEditing() {
@@ -616,6 +629,13 @@ export class AppController {
                 const targetId = tab.getAttribute('data-target');
                 panels.forEach(p => p.classList.remove('active'));
                 document.getElementById(targetId).classList.add('active');
+
+                // ゴミ取りモードから離れる際は、現在の状態を確定（alphaB1にストレートRGBを構築）する
+                if (this.currentMode === 'trash' && targetId !== 'panel-trash') {
+                    if (this.processor.hasImages()) {
+                        this.processor.finalizeTrashMode();
+                    }
+                }
 
                 this.currentMode = targetId.replace('panel-', '');
 
@@ -711,6 +731,7 @@ export class AppController {
                 el.value = val;
                 if (valEl) valEl.textContent = val;
                 this.processor.updateParams(param, parseInt(val));
+                this._bufferState = 'partial'; // パラメータが変わったのでバッファは「部分的」になる
                 this.requestUpdate(true);
             };
             el.addEventListener('input', (e) => updateValue(e.target.value));
@@ -731,7 +752,10 @@ export class AppController {
         // dirCount is now hardcoded to 6 in Rust/ImageProcessor
 
         ['in-matte-t', 'in-matte-b', 'in-matte-l', 'in-matte-r'].forEach(id => {
-            document.getElementById(id)?.addEventListener('input', () => this.updateMatteInputsFromUI());
+            document.getElementById(id)?.addEventListener('input', () => {
+                this._bufferState = 'partial'; // ガーベージマット変更も部分的
+                this.updateMatteInputsFromUI();
+            });
         });
 
         // Background & Comparison Toggles
@@ -820,7 +844,6 @@ export class AppController {
             chk.addEventListener('change', (e) => {
                 const type = e.target.checked ? 'color' : 'checker';
                 this.setCanvasBackground(type);
-                this.saveSetting('aaronAlpha_bgType', type);
             });
         };
         syncBG('chk-bg-basic-color');
@@ -845,15 +868,11 @@ export class AppController {
             // Input: Change background color live
             cp.addEventListener('input', (e) => {
                 this.setCanvasBackground('color', e.target.value);
-                this.saveSetting('aaronAlpha_bgColor', e.target.value);
-                this.saveSetting('aaronAlpha_bgType', 'color');
             });
             // Click/Focus: Auto-switch to color mode if not already
             const autoSwitch = () => {
                 if (this.canvasBackground.type !== 'color') {
                     this.setCanvasBackground('color', cp.value);
-                    this.saveSetting('aaronAlpha_bgType', 'color');
-                    this.saveSetting('aaronAlpha_bgColor', cp.value);
                     // Sync toggles immediately
                     ['chk-bg-basic-color', 'chk-bg-trash-color', 'chk-bg-solid-color'].forEach(id => {
                         const el = document.getElementById(id);
@@ -888,17 +907,22 @@ export class AppController {
             else this.startMatteEditing();
         });
         document.getElementById('btn-reset-trash')?.addEventListener('click', () => {
-            // オフセットを自動算出値に復元
-            this.processor.resetToAutoAlign();
-            // 復元したオフセットで全再計算（ストレートRGB含む）
-            this.processor.confirmOffset(this.processor.offset.x, this.processor.offset.y);
             // ガーベージマットをリセット
             this.processor.updateGarbageMatte('t', 0); this.processor.updateGarbageMatte('b', 0);
             this.processor.updateGarbageMatte('l', 0); this.processor.updateGarbageMatte('r', 0);
             this.updateMatteInputs();
             this.renderEngine.setGarbageMatte(this.processor.garbageMatte);
             // バッファ再初期化
+            this.processor.resetTrashMask(); // 明示的に投げ縄マスクをリセット
             this.processor.initTrashMode();
+
+            // 位置調整のオフセットを自動計算値にリセット
+            this.processor.resetToAutoAlign();
+            this.processor.confirmOffset(this.processor.offset.x, this.processor.offset.y); // WASM側の土台も再計算
+            this.updateOffsetDisplay();
+            this._needsSmartRefresh = true; // 画面外のズレを完璧に塗り直すため強制全域同期
+            this.updateMainView(); // 見た目もリセット後の状態（ストレートRGB）に即時反映させる
+
             // 表示モードリセット
             this._typesOfAlpha = 'hard';
             this._overlayMode = false;
@@ -916,21 +940,18 @@ export class AppController {
             const chkTrashAA = document.getElementById('chk-trash-aa');
             if (chkTrashAA) chkTrashAA.checked = true;
             document.getElementById('btn-trash-aa')?.classList.add('active');
+
             // 背景色リセット(透明=checker) & 全モード同期
-            this.setCanvasBackground('checker');
-            ['chk-bg-basic-color', 'chk-bg-trash-color', 'chk-bg-solid-color'].forEach(id => {
-                const cb = document.getElementById(id);
-                if (cb) cb.checked = false;
-            });
-            document.querySelectorAll('.bg-common-color-picker').forEach(cp => {
-                cp.value = '#000000';
-            });
+            this.resetBackgroundSettings();
 
             // 比較モードOFF (UI sync)
             this.renderEngine.setComparisonMode(false);
             document.querySelectorAll('.chk-comparison-mode').forEach(c => c.checked = false);
             // ズーム・パンをリセット
             this.renderEngine.fitToScreen();
+            this._bufferState = 'full'; // リセット時は全域
+            this._lastScale = this.renderEngine.scale;
+            this._lastPan = { ...this.renderEngine.pan };
             this.updateTrashUI();
             this.requestUpdate(true);
         });
@@ -1247,6 +1268,7 @@ export class AppController {
 
                     // 4. Update View & Unlock UI
                     this.isProcessing = false; // フラグを解除しないと updateMainView がブロックされる
+                    this._bufferState = 'partial';
                     this.updateMainView();     // requestUpdateではなく即時実行して確実に画面へ反映させる
 
                     // Allow final render to complete before unlocking UI
@@ -1303,14 +1325,7 @@ export class AppController {
             document.getElementById('btn-solid-aa')?.classList.add('active');
 
             // 背景色リセット(透明=checker) & 全モード同期
-            this.setCanvasBackground('checker');
-            ['chk-bg-basic-color', 'chk-bg-trash-color', 'chk-bg-solid-color'].forEach(id => {
-                const cb = document.getElementById(id);
-                if (cb) cb.checked = false;
-            });
-            document.querySelectorAll('.bg-common-color-picker').forEach(cp => {
-                cp.value = '#000000';
-            });
+            this.resetBackgroundSettings();
 
             // 比較モードOFF (UI sync)
             this.renderEngine.setComparisonMode(false);
@@ -1326,16 +1341,7 @@ export class AppController {
             const btnSolid = document.getElementById('btn-view-solid');
             if (btnSolid) btnSolid.classList.add('active');
 
-            // --- 修正: スライダー値に基づく青色マスク（solid_buffer）の再計算 ---
-            this.processor.updateSolidMode(
-                255,
-                parseInt(document.getElementById('in-solid-edge')?.value || 64),
-                parseInt(document.getElementById('in-solid-ray')?.value || 5),
-                parseInt(document.getElementById('in-solid-coast')?.value || 3),
-                parseInt(document.getElementById('in-solid-aa-thres')?.value || 128),
-                parseInt(document.getElementById('in-solid-dir-count')?.value || 6)
-            );
-
+            this._bufferState = 'full'; // リセット時は全域
             this.updateMainView();
         });
     }
@@ -1365,11 +1371,7 @@ export class AppController {
                 return;
             }
 
-            // Enter key for Trash Align Mode
-            if (e.code === 'Enter' && this.isTrashAlignMode) {
-                this.endTrashAdjustment();
-                return;
-            }
+
             // Enter key for Matte Edit Mode
             if (e.code === 'Enter' && this.isMatteEditing) {
                 this.endMatteEditing();
@@ -1429,14 +1431,23 @@ export class AppController {
 
             // Arrow keys for Trash Alignment
             if (this.currentMode === 'trash' && this.isTrashAlignMode) {
-                const step = e.shiftKey ? 10 : 1;
-                if (e.code === 'ArrowUp') this.processor.offset.y += step;
-                if (e.code === 'ArrowDown') this.processor.offset.y -= step;
-                if (e.code === 'ArrowLeft') this.processor.offset.x += step;
-                if (e.code === 'ArrowRight') this.processor.offset.x -= step;
+                // 矢印キーのみ反応させ、Spaceキー等の無関係なオートリピートが計算ループを回すのを物理的に遮断
+                if (e.code.startsWith('Arrow')) {
+                    const step = e.shiftKey ? 10 : 1;
+                    if (e.code === 'ArrowUp') this.processor.offset.y += step;
+                    if (e.code === 'ArrowDown') this.processor.offset.y -= step;
+                    if (e.code === 'ArrowLeft') this.processor.offset.x += step;
+                    if (e.code === 'ArrowRight') this.processor.offset.x -= step;
 
-                this.requestAlignmentUpdate();
-                this.updateOffsetDisplay();
+                    this._bufferState = 'partial'; // 位置が変わったので部分的
+                    this.requestAlignmentUpdate();
+                    this.updateOffsetDisplay();
+                }
+            }
+
+            // Enter key for confirming Trash Alignment
+            if (e.code === 'Enter' && this.isTrashAlignMode) {
+                this.endTrashAdjustment();
             }
         });
 
@@ -1623,6 +1634,7 @@ export class AppController {
                 this.requestUpdate(false);
                 if (finished) {
                     console.log('[Lasso] Finished. Mode:', this.currentMode);
+                    this._bufferState = 'partial'; // 投げ縄で不透明度が変わったため partial
                     if (this.currentMode === 'solid') this.requestUpdate(true);
                 }
             }
@@ -1651,6 +1663,7 @@ export class AppController {
                     this.lassoTool && this.lassoTool.isDrawing && this.lassoTool.isPolygonMode) {
                     console.log('[Lasso] Alt Released -> Finalize');
                     this.lassoTool.end();
+                    this._bufferState = 'partial';
                     this.requestUpdate(true);
                 }
             }
@@ -1667,6 +1680,7 @@ export class AppController {
                 e.preventDefault();
                 if (typeof this.processor.popUndoState === 'function') {
                     const restoredMode = this.processor.popUndoState();
+                    this._bufferState = 'partial'; // Undoで画像が戻ったので partial
                     if (restoredMode === 'trash') {
                         this.requestUpdate(true);
                     } else if (restoredMode === 'solid') {
@@ -1702,6 +1716,7 @@ export class AppController {
         this.processor.updateGarbageMatte('r', r);
         this.updateMatteInputs();
         this.renderEngine.setGarbageMatte(this.processor.garbageMatte);
+        this._bufferState = 'partial'; // マット移動後の再計算は部分的で開始する
         this.requestUpdate(false);
     }
 
@@ -1742,14 +1757,28 @@ export class AppController {
     }
 
     handleExportBasic() {
+        // エクスポート前にゴミ取り結果を確定させ、最新のストレートRGBを構築する
+        if (this.processor.hasImages() && this.hasEnteredTrash) {
+            this.processor.finalizeTrashMode();
+        }
+
         const bgColor = (this.canvasBackground.type === 'color') ? this.canvasBackground.color : null;
         const result = this.processor.processExport('basic', bgColor, this.baseFileName || 'image');
         if (result) {
             this.downloadImage(result.data, result.filename);
         }
+
+        // エクスポート完了後（WASMメモリ拡張後）にプレビューを再取得して再描画
+        // この時、WASM側での再計算をスキップして、確定済みのバッファをそのまま表示する
+        this.updateMainView(true);
     }
 
     handleExportTrash() {
+        // エクスポート前に画面外（ビューポート外）も含めた全域のバッファをフルリフレッシュする
+        if (this.processor.hasImages()) {
+            this.processor.finalizeTrashMode();
+        }
+
         // Determine mode based on Alpha Type setting (Hard or Soft)
         // Note: trashOverlay is view-only, export depends on the underlying mode.
         const mode = (this.typesOfAlpha === 'soft') ? 'trash_alpha' : 'trash_hard';
@@ -1759,6 +1788,9 @@ export class AppController {
         if (result) {
             this.downloadImage(result.data, result.filename);
         }
+
+        // エクスポート完了後（WASMメモリ拡張後）にプレビューを再取得して再描画
+        this.updateMainView(true);
     }
 
     handleExportSolid() {
@@ -1768,6 +1800,9 @@ export class AppController {
         if (result) {
             this.downloadImage(result.data, result.filename);
         }
+
+        // エクスポート完了後（WASMメモリ拡張後）にプレビューを再取得して再描画
+        this.updateMainView(true);
     }
 
     downloadImage(uint8Data, filename) {
@@ -2055,8 +2090,18 @@ export class AppController {
         this.renderEngine.setImage(emptyData, false);
         this.renderEngine.scale = 1.0;
         this.renderEngine.pan = { x: 0, y: 0 };
+        // 背景の確実なリセット
+        this.resetBackgroundSettings();
+
         this.renderEngine.requestRender();
 
         console.log('[AppController] Reset Complete.');
+    }
+
+    /**
+     * 全モード共通の背景リセット処理
+     */
+    resetBackgroundSettings() {
+        this.setCanvasBackground('checker', '#000000');
     }
 }

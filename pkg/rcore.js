@@ -76,7 +76,7 @@ export function build_solid_preview() {
 }
 
 export function clear_solid_applied_flag() {
-    wasm.init_rust();
+    wasm.clear_solid_applied_flag();
 }
 
 export function commit_solid_source_temp() {
@@ -319,6 +319,10 @@ export function reset_solid_mode() {
     wasm.reset_solid_mode();
 }
 
+export function reset_trash_mask() {
+    wasm.reset_trash_mask();
+}
+
 /**
  * @param {number} mode
  */
@@ -347,9 +351,10 @@ export function set_offset(ox, oy) {
  * @param {number} vp_w
  * @param {number} vp_h
  * @param {boolean} speed_priority
+ * @param {number} threshold
  */
-export function update_alignment_alpha_only(offset_x, offset_y, t, b, l, r, margin, vp_x, vp_y, vp_w, vp_h, speed_priority) {
-    wasm.update_alignment_alpha_only(offset_x, offset_y, t, b, l, r, margin, vp_x, vp_y, vp_w, vp_h, speed_priority);
+export function update_alignment_alpha_only(offset_x, offset_y, t, b, l, r, margin, vp_x, vp_y, vp_w, vp_h, speed_priority, threshold) {
+    wasm.update_alignment_alpha_only(offset_x, offset_y, t, b, l, r, margin, vp_x, vp_y, vp_w, vp_h, speed_priority, threshold);
 }
 
 /**
@@ -374,9 +379,13 @@ export function update_solid_params(solid_level, edge_thres, ray_dist, gm_t, gm_
  * @param {number} b
  * @param {number} l
  * @param {number} r
+ * @param {number} vp_x
+ * @param {number} vp_y
+ * @param {number} vp_w
+ * @param {number} vp_h
  */
-export function update_trash_mode(threshold, type_of_alpha, overlay_mode, t, b, l, r) {
-    wasm.update_trash_mode(threshold, type_of_alpha, overlay_mode, t, b, l, r);
+export function update_trash_mode(threshold, type_of_alpha, overlay_mode, t, b, l, r, vp_x, vp_y, vp_w, vp_h) {
+    wasm.update_trash_mode(threshold, type_of_alpha, overlay_mode, t, b, l, r, vp_x, vp_y, vp_w, vp_h);
 }
 
 function __wbg_get_imports() {
