@@ -8,17 +8,22 @@ export class Dialog {
     static overlay = null;
     static titleEl = null;
     static bodyEl = null;
+    static imgContainer = null;
+    static imgEl = null;
     static inputContainer = null;
     static inputEl = null;
     static btnOk = null;
     static btnCancel = null;
     static btnYes = null;
     static btnNo = null;
+    static cardEl = null;
 
     static init() {
         this.overlay = document.getElementById('custom-dialog-overlay');
         this.titleEl = document.getElementById('dialog-title');
         this.bodyEl = document.getElementById('dialog-body');
+        this.imgContainer = document.getElementById('dialog-img-container');
+        this.imgEl = document.getElementById('dialog-img');
         this.inputContainer = document.getElementById('dialog-input-container');
         this.inputEl = document.getElementById('dialog-input');
 
@@ -26,6 +31,7 @@ export class Dialog {
         this.btnCancel = document.getElementById('dialog-btn-cancel');
         this.btnYes = document.getElementById('dialog-btn-yes');
         this.btnNo = document.getElementById('dialog-btn-no');
+        this.cardEl = document.querySelector('.dialog-card');
     }
 
     static show(config) {
@@ -34,6 +40,19 @@ export class Dialog {
         return new Promise((resolve) => {
             this.titleEl.textContent = config.title || 'Aaron Alpha';
             this.bodyEl.textContent = config.message || '';
+
+            // Wide Mode (for TOS/Policy)
+            if (this.cardEl) {
+                this.cardEl.classList.toggle('wide', !!config.wideMode);
+            }
+
+            // Handle Image
+            if (config.imagePath) {
+                this.imgContainer.style.display = 'block';
+                this.imgEl.src = config.imagePath;
+            } else {
+                this.imgContainer.style.display = 'none';
+            }
 
             // Handle Input
             if (config.showInput) {
@@ -61,11 +80,37 @@ export class Dialog {
                 this.btnYes.style.display = 'none';
                 this.btnNo.style.display = 'none';
             } else {
-                // Default Alert
                 this.btnOk.style.display = 'block';
                 this.btnCancel.style.display = 'none';
                 this.btnYes.style.display = 'none';
                 this.btnNo.style.display = 'none';
+            }
+
+            // Custom Labels
+            if (config.okLabel) this.btnOk.textContent = config.okLabel;
+            else this.btnOk.setAttribute('data-i18n', 'dialog.ok');
+
+            if (config.cancelLabel) this.btnCancel.textContent = config.cancelLabel;
+            else this.btnCancel.setAttribute('data-i18n', 'dialog.cancel');
+
+            if (config.yesLabel) this.btnYes.textContent = config.yesLabel;
+            else this.btnYes.setAttribute('data-i18n', 'dialog.yes');
+
+            if (config.noLabel) this.btnNo.textContent = config.noLabel;
+            else this.btnNo.setAttribute('data-i18n', 'dialog.no');
+
+            // Re-apply i18n if no custom label
+            if (!config.okLabel || !config.cancelLabel || !config.yesLabel || !config.noLabel) {
+                // We'll rely on the global applyAll potentially, 
+                // but for immediate update:
+                [this.btnOk, this.btnCancel, this.btnYes, this.btnNo].forEach(btn => {
+                    if (!btn.textContent || btn.hasAttribute('data-i18n')) {
+                        const key = btn.getAttribute('data-i18n');
+                        if (key && !config[`${key.split('.')[1]}Label`]) {
+                            btn.textContent = t(key);
+                        }
+                    }
+                });
             }
 
             this.overlay.style.display = 'flex';

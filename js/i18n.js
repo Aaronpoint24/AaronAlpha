@@ -96,9 +96,11 @@ const dictionaries = {
         'settings.issueAuthBtn': 'Issue Auth Key',
         'settings.helpBtn': 'Help',
 
-        'auth.promptTitle': 'Authentication Required',
         'auth.welcomeTitle': 'Auth & Trial Guide',
         'auth.welcomeMsg': 'You can try all features without authentication, but PNG export is limited outside Basic mode.',
+        'auth.btnTry': 'Try it out',
+        'auth.btnGoAuth': 'Go to Auth',
+        'auth.promptTitle': 'Authentication Required',
         'auth.prompt': 'Please enter a valid Auth Key.',
         'auth.success': 'Authentication Successful',
         'auth.failed': 'Authentication Failed',
@@ -109,6 +111,10 @@ const dictionaries = {
         'settings.resetAll': 'Reset All Settings',
         'settings.issueAuthBtn': 'Issue Auth Key',
         'settings.helpBtn': 'Help',
+
+        'terms.link': 'ToS',
+        'privacy.link': 'Privacy',
+        'refund.link': 'Refund',
 
         // Errors
         'error.sizeMismatch': 'Image dimension mismatch ({{w1}}x{{h1}} vs {{w2}}x{{h2}}).',
@@ -123,6 +129,8 @@ const dictionaries = {
         'dialog.yes': 'Yes',
         'dialog.no': 'No',
         'dialog.inputPlaceholder': 'Enter Auth Key...',
+        'dialog.openFull': 'Open in full page',
+        'dialog.close': 'Close',
 
         // Help (Bento Cards - Right Side)
         'help.btn': 'Usage',
@@ -296,9 +304,15 @@ const dictionaries = {
         'settings.issueAuthBtn': '認証発行 ',
         'settings.helpBtn': '説明',
 
-        'auth.promptTitle': '認証が必要です',
+        'terms.link': '利用規約',
+        'privacy.link': 'プライバシーポリシー',
+        'refund.link': '返金について',
+
         'auth.welcomeTitle': '認証と試用のご案内',
         'auth.welcomeMsg': '未認証状態でもすべての機能を試用いただけますが、\n基本モード以外のPNG出力に制限がかかります。',
+        'auth.btnTry': 'とりあえず触る',
+        'auth.btnGoAuth': '認証に行く',
+        'auth.promptTitle': '認証が必要です',
         'auth.prompt': '有効な認証キーを入力してください。',
         'auth.success': '認証に成功しました',
         'auth.failed': '認証に失敗しました',
@@ -324,6 +338,8 @@ const dictionaries = {
         'dialog.yes': 'はい',
         'dialog.no': 'いいえ',
         'dialog.inputPlaceholder': '認証キーを入力してください。',
+        'dialog.openFull': '全画面で表示',
+        'dialog.close': '閉じる',
 
         // Help (Bento Cards - Right Side)
         'help.btn': '使い方',

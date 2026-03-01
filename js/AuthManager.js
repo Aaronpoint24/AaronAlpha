@@ -1,6 +1,8 @@
 import { t } from './i18n.js';
 import { authenticate, is_authenticated } from '../pkg/rcore.js';
 import { Dialog } from './Dialog.js';
+import { legalTexts } from './legal_pages.js';
+import { getCurrentLang } from './i18n.js';
 
 /**
  * Authentication Manager
@@ -39,6 +41,9 @@ export class AuthManager {
     async init() {
         const storedKey = localStorage.getItem(this.storageKey);
 
+        // Bind Header Links
+        this.bindHeaderLinks();
+
         if (storedKey) {
             console.log('[AuthManager] Found stored key, attempting authentication...');
             try {
@@ -49,9 +54,8 @@ export class AuthManager {
                 } else {
                     console.warn('[AuthManager] Stored key is invalid.');
                     this.notifyChange(false);
-                    // Invalid key stored, maybe prompt again or let user fix in settings
-                    // For now, prompt again to be friendly
-                    this.promptUser();
+                    // On error, we continue to show welcome if it's really the first time
+                    this.checkFirstVisit();
                 }
             } catch (e) {
                 console.error('[AuthManager] Error calling Rust verify:', e);
@@ -60,39 +64,113 @@ export class AuthManager {
         } else {
             console.log('[AuthManager] No stored key found.');
             this.notifyChange(false);
+            this.checkFirstVisit();
+        }
+    }
 
-            // Only prompt on first visit
-            const hasVisited = localStorage.getItem(this.visitKey);
-            if (!hasVisited) {
-                localStorage.setItem(this.visitKey, 'true');
-                this.promptUser();
+    /**
+     * Bind click events to legal links in header
+     */
+    bindHeaderLinks() {
+        const links = [
+            { id: 'lnk-terms', key: 'terms' },
+            { id: 'lnk-privacy', key: 'privacy' },
+            { id: 'lnk-refund', key: 'refund' }
+        ];
+
+        links.forEach(link => {
+            const el = document.getElementById(link.id);
+            if (el) {
+                el.onclick = (e) => {
+                    e.preventDefault();
+                    const lang = getCurrentLang();
+                    const data = legalTexts[lang][link.key];
+                    Dialog.show({
+                        title: data.title,
+                        message: data.content,
+                        type: 'confirm',
+                        yesLabel: t('dialog.openFull'),
+                        noLabel: t('dialog.close'),
+                        wideMode: true
+                    }).then(res => {
+                        if (res === true) {
+                            window.open(`${link.key}.html`, '_blank');
+                        }
+                    });
+                };
+            }
+        });
+    }
+
+    /**
+     * Check if first visit and show welcome dialog
+     */
+    async checkFirstVisit() {
+        const hasVisited = localStorage.getItem(this.visitKey);
+        if (!hasVisited) {
+            localStorage.setItem(this.visitKey, 'true');
+
+            // Show welcome dialog with 2 buttons
+            const res = await Dialog.show({
+                title: t('auth.welcomeTitle'),
+                message: t('auth.welcomeMsg'),
+                type: 'confirm',
+                yesLabel: t('auth.btnGoAuth'),
+                noLabel: t('auth.btnTry')
+            });
+
+            if (res === true) {
+                // "Go to Auth" -> Open settings
+                const btnSettings = document.getElementById('btn-settings');
+                if (btnSettings) btnSettings.click();
+
+                const inpKey = document.getElementById('inp-auth-key');
+                if (inpKey) {
+                    setTimeout(() => inpKey.focus(), 300);
+                }
+            } else {
+                // "Try it out" -> Do nothing, stay on basic
+                console.log('[AuthManager] User chose to try out first.');
             }
         }
     }
 
     /**
+     * Open Polar Shop with guidance if Japanese
+     */
+    async openPolarShop() {
+        const lang = getCurrentLang();
+        if (lang === 'ja') {
+            const confirmed = await Dialog.confirm(
+                "決済システム（Polar.sh）は英語表記となっています。\n決済手順の解説画像を表示しますか？",
+                "Polar.sh 決済のご案内"
+            );
+            if (confirmed) {
+                // Show guide image
+                await Dialog.show({
+                    title: "Polar.sh 決済手順",
+                    message: "1. 決済ページでメールアドレスを入力\n2. カード情報を入力\n3. 完了後に表示（またはメール）されるキーをコピーしてください。\n\n※この後ショップページを開きます。",
+                    imagePath: "image/polar_sh_guide_jp.png",
+                    type: 'alert',
+                    wideMode: true
+                });
+            }
+        }
+
+        // Open shop in new tab
+        window.open('https://polar.sh/Aaronpoint', '_blank');
+    }
+
+    /**
      * Prompt user for key using Custom Dialog.
+     * (Kept for legacy or specific manual triggers)
      */
     async promptUser() {
-        // Delay slightly to ensure UI is ready
-        setTimeout(async () => {
-            const currentAuth = this.isAuthenticated();
-            if (currentAuth) {
-                this.notifyChange(true);
-                return;
-            }
-
-            const title = t('auth.welcomeTitle');
-            const msg = t('auth.welcomeMsg');
-            const inputKey = await Dialog.prompt(msg, '', title);
-
-            if (inputKey !== null) {
-                this.login(inputKey);
-            } else {
-                console.log('[AuthManager] Prompt cancelled by user.');
-                this.notifyChange(false);
-            }
-        }, 800);
+        // ... (Already covered by checkFirstVisit and settings UI)
+        const inputKey = await Dialog.prompt(t('auth.welcomeMsg'), '', t('auth.welcomeTitle'));
+        if (inputKey !== null) {
+            this.login(inputKey);
+        }
     }
 
     async login(key) {
