@@ -975,6 +975,28 @@ export class AppController {
             this.handleAppReset();
         });
 
+        // Auth Related Buttons
+        document.getElementById('btn-issue-auth')?.addEventListener('click', () => {
+            if (window.authManager) window.authManager.openPolarShop();
+        });
+
+        document.getElementById('btn-save-auth-key')?.addEventListener('click', () => {
+            const inp = document.getElementById('inp-auth-key');
+            if (inp && window.authManager) {
+                window.authManager.login(inp.value);
+            }
+        });
+
+        document.getElementById('btn-reset-auth')?.addEventListener('click', async () => {
+            if (window.authManager) {
+                const ok = await Dialog.confirm(t('auth.confirmReset'), t('auth.resetAuth'));
+                if (ok) {
+                    window.authManager.logout();
+                    location.reload();
+                }
+            }
+        });
+
         // AA ボタン連動 (Trash)
         document.getElementById('btn-trash-aa')?.addEventListener('click', () => {
             const chk = document.getElementById('chk-trash-aa');
