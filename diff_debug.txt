@@ -1,0 +1,319 @@
+diff --git a/index.html b/index.html
+index 3eb21b9..e093c77 100644
+--- a/index.html
++++ b/index.html
+@@ -318,10 +318,11 @@
+                             <option value="en">English</option>
+                         </select>
+                     </div>
++                    <!-- 購入前に表示する文言は JSによるダイアログで対応します -->
+                     <!-- 認証発行ボタン (未認証時に有効) -->
+-                    <button id="btn-issue-auth" class="setting-item" data-i18n-title="help.tip.settings.issueAuth"
++                    <a href="#" id="btn-issue-auth" class="setting-item" data-i18n-title="help.tip.settings.issueAuth"
+                         data-i18n="settings.issueAuthBtn"
+-                        style="margin-bottom: 0; flex:1; font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; font-weight: 900; font-size: 20px; padding: 12px; background: linear-gradient(135deg, #ff4c4c, #c92a2a); color: #fff; border: 2px solid #ff0000; border-radius: 6px; cursor: pointer; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); transition: all 0.2s;">認証発行</button>
++                        style="display: block; text-align: center; text-decoration: none; margin-bottom: 0; flex:1; font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; font-weight: 900; font-size: 20px; padding: 12px; background: linear-gradient(135deg, #ff4c4c, #c92a2a); color: #fff; border: 2px solid #ff0000; border-radius: 6px; cursor: pointer; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); transition: all 0.2s;">認証発行</a>
+                 </div>
+                 <div class="setting-item" style="margin-top: 15px;" data-i18n-title="help.tip.settings.auth">
+                     <label data-i18n="settings.authKey">認証キー</label>
+@@ -437,6 +438,28 @@
+                         </div>
+                     </section>
+ 
++                    <!-- AI Curve Area (Solid Extension) -->
++                    <section id="section-alpha-curve" class="input-section" style="display: none; margin-top: 15px; border-color: #ff4c4c;">
++                        <div class="section-header" style="justify-content: flex-start; gap: 8px;">
++                            <svg viewBox="0 0 24 24" width="16" height="16" fill="#ff4c4c"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4 0-2.05 1.53-3.76 3.56-3.97l1.07-.11.5-.95C8.08 7.14 9.94 6 12 6c2.62 0 4.88 1.86 5.39 4.43l.3 1.5 1.53.11c1.56.1 2.78 1.41 2.78 2.96 0 1.65-1.35 3-3 3zm-5.55-8l-2.45 2.45v-5.45h-2v5.45l-2.45-2.45-1.41 1.41 4.86 4.86 4.86-4.86z"/></svg>
++                            <h3 style="margin:0; border: none; padding: 0; color: #ff4c4c;" data-i18n="basic.curveTitle">半透明保護AIカーブ</h3>
++                        </div>
++                        <div class="control-group" style="margin-top: 10px;">
++                            <label style="display:flex; justify-content:space-between;">
++                                <span data-i18n="basic.curveSolidPt">定着ライン(S)</span>
++                                <span id="val-curve-solid">0.85</span>
++                            </label>
++                            <input type="range" id="rng-curve-solid" min="0.5" max="1.0" step="0.01" value="0.85">
++                        </div>
++                        <div class="control-group">
++                            <label style="display:flex; justify-content:space-between;">
++                                <span data-i18n="basic.curvePreserve">保護パワー(P)</span>
++                                <span id="val-curve-preserve">2.0</span>
++                            </label>
++                            <input type="range" id="rng-curve-preserve" min="1.0" max="8.0" step="0.1" value="2.0">
++                        </div>
++                    </section>
++
+                     <div class="export-area" style="margin-top: 20px; padding-top: 0; border-top: none;">
+                         <div class="control-group common-bg-group">
+                             <div class="group-header" style="border-bottom: none;">
+diff --git a/js/AppController.js b/js/AppController.js
+index f7f88c4..a72f86f 100644
+--- a/js/AppController.js
++++ b/js/AppController.js
+@@ -170,6 +170,24 @@ export class AppController {
+             }
+ 
+             console.log('[AppController/Storage] Settings loaded successfully.');
++
++            // Check for Polar Success Redirect
++            const urlParams = new URLSearchParams(window.location.search);
++            const checkoutId = urlParams.get('checkout_id');
++            const isPolarSuccess = urlParams.get('polar_success');
++
++            if (checkoutId) {
++                // Remove the query parameters from URL to keep it clean
++                window.history.replaceState({}, document.title, window.location.pathname);
++
++                // Show the Omo-te-na-shi Dialog
++                setTimeout(() => {
++                    if (typeof this.handlePurchaseSuccess === 'function') {
++                        this.handlePurchaseSuccess(checkoutId);
++                    }
++                }, 500);
++            }
++
+         } catch (e) {
+             console.error('[AppController/Storage] Failed to load settings:', e);
+         }
+@@ -291,19 +309,24 @@ export class AppController {
+ 
+             // 未認証時のみクリック可能（設定を開く）にする
+             if (!isAuthenticated) {
++                const modeText = (window.AARON_BUILD_MODE === 'purchase')
++                    ? '未認証（認証発行はこちらから）'
++                    : '未認証（期間限定無料でお試しできます）';
++
++                statusEl.textContent = modeText;
++                statusEl.className = 'auth-status unauthenticated';
+                 statusEl.style.cursor = 'pointer';
+                 statusEl.onclick = () => {
+-                    const settingsModal = document.getElementById('settings-modal');
+-                    if (settingsModal) {
+-                        settingsModal.style.display = 'flex';
+-                        // 設定キーの入力を促すため、インプットにフォーカス
+-                        const inpKey = document.getElementById('inp-auth-key');
+-                        if (inpKey) {
+-                            inpKey.value = localStorage.getItem('aaronAlpha_auth_key') || '';
+-                            inpKey.focus();
+-                        }
+-                    }
++                    const btnSet = document.getElementById('btn-settings');
++                    if (btnSet) btnSet.click();
+                 };
++
++                // 購入モードの場合は設定画面のボタン上に利用規約文言を表示
++                const note = document.getElementById('purchase-terms-note');
++                if (note) {
++                    note.style.display = (window.AARON_BUILD_MODE === 'purchase') ? 'block' : 'none';
++                }
++
+             } else {
+                 statusEl.style.cursor = 'default';
+                 statusEl.onclick = null;
+@@ -777,29 +800,51 @@ export class AppController {
+             });
+         });
+ 
+-        // Solid Ext Toggle
++        // Solid Ext Toggle (Also controls AI Curve section in basic mode)
+         const chkSolidExt = document.getElementById('chk-solid-ext');
+         if (chkSolidExt) {
+             chkSolidExt.addEventListener('change', (e) => {
+                 const state = e.target.checked;
+-                console.log(`[AppController/Log] Solid Ext Toggled: ${state}`);
++                console.log(`[AppController/Log] Solid Ext (AI Curve) Toggled: ${state}`);
+                 this.solidExtEnabled = state;
+                 localStorage.setItem('aaronAlpha_solidExt', state);
++
++                // Solid Mode V2 Debug Panel
+                 const dp = document.getElementById('solid-v2-debug-panel');
+                 if (dp) dp.style.display = state ? 'block' : 'none';
+ 
++                // Base Mode AI Curve Panel
++                const ac = document.getElementById('section-alpha-curve');
++                if (ac) ac.style.display = state ? 'block' : 'none';
++
+                 // Switch off floating debug panel if disabled
+                 if (!state) {
+                     const dbgPanel = document.getElementById('debug-panel');
+                     if (dbgPanel) dbgPanel.style.display = 'none';
+                     this.currentSmValue = undefined;
+                 }
++
++                // Immediately apply setting to WASM if on basic mode
++                this.triggerAlphaCurveUpdate();
+             });
+             // Initial UI sync
+             const dp = document.getElementById('solid-v2-debug-panel');
+             if (dp) dp.style.display = chkSolidExt.checked ? 'block' : 'none';
++            const ac = document.getElementById('section-alpha-curve');
++            if (ac) ac.style.display = chkSolidExt.checked ? 'block' : 'none';
+         }
+ 
++        // AI Curve Sliders
++        const triggerCurveUpdate = () => this.triggerAlphaCurveUpdate();
++        linkSlider('rng-curve-solid', 'val-curve-solid', 'curveSolidPt');     // Dummy bind to generic, override via custom
++        linkSlider('rng-curve-preserve', 'val-curve-preserve', 'curvePreserve'); // Dummy bind to generic, override via custom
++
++        // Override with dedicated event
++        const rngCurveSolid = document.getElementById('rng-curve-solid');
++        const rngCurvePreserve = document.getElementById('rng-curve-preserve');
++        if (rngCurveSolid) rngCurveSolid.addEventListener('input', triggerCurveUpdate);
++        if (rngCurvePreserve) rngCurvePreserve.addEventListener('input', triggerCurveUpdate);
++
+         // Speed Priority Toggle (Manual Alignment)
+         const chkSpeedPriority = document.getElementById('chk-speed-priority');
+         if (chkSpeedPriority) {
+@@ -827,9 +872,11 @@ export class AppController {
+         const inpUndoLimit = document.getElementById('inp-undo-limit');
+         if (inpUndoLimit) {
+             inpUndoLimit.addEventListener('change', (e) => {
+-                const val = parseInt(e.target.value);
+-                if (this.processor) this.processor.setUndoLimit(val);
+-                this.saveSetting('aaronAlpha_undoLimit', val);
++                let limit = parseInt(e.target.value);
++                if (isNaN(limit) || limit < 3) limit = 3;
++                if (limit > 10) limit = 10;
++                e.target.value = limit;
++                this.updateUndoLimit(limit);
+             });
+         }
+ 
+@@ -890,6 +937,39 @@ export class AppController {
+             cp.addEventListener('click', autoSwitch);
+             cp.addEventListener('focus', autoSwitch);
+         });
++
++        // 比較画像切り替え (Shift + Z または C)
++        window.addEventListener('keydown', (e) => {
++            // ... (handled in key events)
++        });
++    }
++
++    triggerAlphaCurveUpdate() {
++        if (!this.processor || !this.processor.hasImages()) return;
++
++        const chkExt = document.getElementById('chk-solid-ext');
++        const rngSolid = document.getElementById('rng-curve-solid');
++        const rngPreserve = document.getElementById('rng-curve-preserve');
++
++        const useCurve = chkExt && chkExt.checked;
++        const s = rngSolid ? parseFloat(rngSolid.value) : 0.85;
++        const p = rngPreserve ? parseFloat(rngPreserve.value) : 2.0;
++
++        // Display update
++        const valSolid = document.getElementById('val-curve-solid');
++        const valPreserve = document.getElementById('val-curve-preserve');
++        if (valSolid) valSolid.textContent = s.toFixed(2);
++        if (valPreserve) valPreserve.textContent = p.toFixed(1);
++
++        this.processor.updateAlphaCurveParams(useCurve, s, p);
++        this._bufferState = 'partial';
++
++        // Basic mode dictates alpha0 re-calculation
++        if (this.currentMode === 'basic') {
++            this.processor.calculateAlphaZero();
++        }
++
++        this.requestUpdate(true);
+     }
+ 
+     bindButtonEvents() {
+@@ -976,10 +1056,29 @@ export class AppController {
+         });
+ 
+         // Auth Related Buttons
+-        document.getElementById('btn-issue-auth')?.addEventListener('click', () => {
+-            if (window.authManager) window.authManager.openPolarShop();
++        document.getElementById('btn-issue-auth')?.addEventListener('click', async (e) => {
++            e.preventDefault();
++
++            // 購入モードの場合は事前の説明・規約確認ダイアログを表示
++            if (window.AARON_BUILD_MODE === 'purchase') {
++                const ok = await Dialog.confirm(
++                    "【ご購入手続きについて】\n\nこれより外部の決済画面（Polar.sh）へ移動します。\n\n※ ご購入の際は「利用規約」および「プライバシーポリシー」に同意したものとみなされます。\n内容をご確認の上、よろしければ「OK」を押して決済へお進みください。",
++                    "利用規約の確認"
++                );
++                if (!ok) return;
++            }
++
++            // Generate success URL to return to this exact app URL
++            const currentUrl = new URL(window.location.href);
++            currentUrl.searchParams.set('polar_success', '1');
++            const successUrl = encodeURIComponent(currentUrl.toString());
++
++            // 確実な動作のため、通常のページ遷移（リダイレクト）を行います
++            const baseHref = "https://buy.polar.sh/polar_cl_HCvYLmxMTozbaS8eYMtLuDpx7ywG84xLNpZCH0TWtmM";
++            window.location.href = `${baseHref}?success_url=${successUrl}`;
+         });
+ 
++
+         document.getElementById('btn-save-auth-key')?.addEventListener('click', () => {
+             const inp = document.getElementById('inp-auth-key');
+             if (inp && window.authManager) {
+@@ -2137,4 +2236,65 @@ export class AppController {
+     resetBackgroundSettings() {
+         this.setCanvasBackground('checker', '#000000');
+     }
++
++    // ========================
++    // Purchase Success Flow
++    // ========================
++    async handlePurchaseSuccess(checkoutId) {
++        console.log(`[AppController] Handling purchase success for checkout: ${checkoutId}`);
++
++        // Show loading lock
++        const lock = document.getElementById('global-ui-lock');
++        if (lock) {
++            lock.style.display = 'block';
++            lock.querySelector('div').innerHTML = '決済を確認中...<br><span style="font-size:14px; font-weight:normal; color:#aaa; margin-top:10px; display:block;">ライセンスキーを発行しています</span>';
++        }
++
++        let key = null;
++        // Poll the Cloudflare Worker for up to 30 seconds
++        for (let i = 0; i < 15; i++) {
++            try {
++                const res = await fetch(`https://aaronalpha.aaronpoint.workers.dev/check-status?checkout_id=${checkoutId}`);
++                if (res.ok) {
++                    const data = await res.json();
++                    if (data && data.key) {
++                        key = data.key;
++                        break;
++                    }
++                }
++            } catch (e) {
++                console.warn("[AppController] Polling error", e);
++            }
++            // Wait 2 seconds
++            await new Promise(r => setTimeout(r, 2000));
++        }
++
++        if (lock) lock.style.display = 'none';
++
++        if (key) {
++            // Success! Show Omo-te-na-shi Dialog
++            let title = "決済完了";
++            let msg = `🎉 お買い上げありがとうございます！\n\n以下の認証キーが発行されました。\n【 ${key} 】\n\n※このキーはご登録いただいたメールアドレスにも送信されています。大切に保管してください。\n\n「OK」を押すと自動的に認証が完了し、制限が解除されます。`;
++
++            if (window.AARON_BUILD_MODE === 'free') {
++                title = "ご登録完了";
++                msg = `🎉 ご登録ありがとうございます！\n\n以下の認証キーが発行されました。\n【 ${key} 】\n\n※認証キーはメールでもご案内しております。ご確認ください。\n\n「OK」を押すと自動的に認証が完了し、制限が解除されます。`;
++            }
++
++            await Dialog.alert(msg, title);
++
++            // Auto register
++            if (window.authManager) {
++                console.log(`[AppController] Auto-registering key: ${key}`);
++                const success = await window.authManager.login(key);
++                if (success) {
++                    // Force close settings if open
++                    const settingsModal = document.getElementById('settings-modal');
++                    if (settingsModal) settingsModal.style.display = 'none';
++                }
++            }
++        } else {
++            Dialog.alert("決済の確認に時間がかかっています。\nお手数ですが、メールアドレスにライセンスキーが届いているかご確認ください。", "確認保留");
++        }
++    }
+ }
+\ No newline at end of file

@@ -18,7 +18,7 @@ export function build_solid_base_image(): void;
 /**
  * 可視化オーバーレイをfinal_bufferに構築する
  */
-export function build_solid_overlay(): void;
+export function build_solid_overlay(is_preview_on: boolean): void;
 
 export function build_solid_preview(): void;
 
@@ -89,7 +89,7 @@ export function init_trash_mode(): void;
 
 export function is_authenticated(): boolean;
 
-export function load_images(width: number, height: number, black_data: Uint8Array, white_data: Uint8Array, auto_align: boolean): void;
+export function load_images(width: number, height: number, black_data: Uint8Array, white_data: Uint8Array, auto_align: boolean, calc_mode: number, use_curve: boolean, solid_pt: number, preserve: number): void;
 
 export function load_solid_source_temp(w: number, h: number, data: Uint8Array, init_x: number, init_y: number): void;
 
@@ -106,7 +106,9 @@ export function reset_solid_mode(): void;
 
 export function reset_trash_mask(): void;
 
-export function set_calc_mode(mode: number): void;
+export function set_auth_state(is_valid: boolean): void;
+
+export function set_calc_mode(mode: number, use_curve: boolean, solid_pt: number, preserve: number): void;
 
 export function set_offset(ox: number, oy: number): void;
 
@@ -127,7 +129,7 @@ export interface InitOutput {
     readonly apply_solid_to_alpha_zero: () => void;
     readonly authenticate: (a: number, b: number) => number;
     readonly build_solid_base_image: () => void;
-    readonly build_solid_overlay: () => void;
+    readonly build_solid_overlay: (a: number) => void;
     readonly build_solid_preview: () => void;
     readonly burn_in_trash_mask: () => void;
     readonly clear_solid_applied_flag: () => void;
@@ -155,14 +157,15 @@ export interface InitOutput {
     readonly get_solid_export_buffer_ptr: () => number;
     readonly init_trash_mode: () => void;
     readonly is_authenticated: () => number;
-    readonly load_images: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+    readonly load_images: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number) => void;
     readonly load_solid_source_temp: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
     readonly move_solid_source_temp: (a: number, b: number) => void;
     readonly preview_solid_source_temp: () => void;
     readonly process_export: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
     readonly reset_solid_mode: () => void;
     readonly reset_trash_mask: () => void;
-    readonly set_calc_mode: (a: number) => void;
+    readonly set_auth_state: (a: number) => void;
+    readonly set_calc_mode: (a: number, b: number, c: number, d: number) => void;
     readonly set_offset: (a: number, b: number) => void;
     readonly update_alignment_alpha_only: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: number) => void;
     readonly update_solid_params: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;

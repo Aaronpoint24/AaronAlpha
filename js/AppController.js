@@ -119,6 +119,14 @@ export class AppController {
                 }
             };
 
+            // [セーブ] 画面離脱時にカーブ設定を一括保存（beforeunload）
+            window.addEventListener('beforeunload', () => {
+                if (this.processor) {
+                    this.saveSetting('aaronAlpha_curveSolid', this.processor.params.curveSolidPt);
+                    this.saveSetting('aaronAlpha_curvePreserve', this.processor.params.curvePreserve);
+                }
+            });
+
             console.log('[System] AppController v5.2 initialized.');
         } catch (e) {
             console.error('[System] Init Error:', e);
@@ -160,6 +168,9 @@ export class AppController {
             // Sync initial UI state for solid extension (since bindInputEvents happens before loadSettings)
             const dp = document.getElementById('solid-v2-debug-panel');
             if (dp) dp.style.display = this.solidExtEnabled ? 'block' : 'none';
+            // カーブUIパネルの初期表示同期
+            const curvePanel = document.getElementById('curve-panel');
+            if (curvePanel) curvePanel.style.display = this.solidExtEnabled ? 'block' : 'none';
 
             if (undoLimit !== null) {
                 const el = document.getElementById('inp-undo-limit');
@@ -169,7 +180,32 @@ export class AppController {
                 }
             }
 
-            console.log('[AppController/Storage] Settings loaded successfully.');
+            // [ソリッド＆半透明保護カーブ] ロード（デフォルト: S=0.95, P=3.0）
+            const savedSolidPt = localStorage.getItem('aaronAlpha_curveSolid');
+            const savedPreserve = localStorage.getItem('aaronAlpha_curvePreserve');
+            const solidPtVal = savedSolidPt !== null ? parseFloat(savedSolidPt) : 0.95;
+            const preserveVal = savedPreserve !== null ? parseFloat(savedPreserve) : 3.0;
+            // processor.params への同期（表示フラグに関わらず常に適用）
+            if (this.processor) {
+                this.processor.params.useAlphaCurve = true; // 常にON
+                this.processor.params.curveSolidPt = solidPtVal;
+                this.processor.params.curvePreserve = preserveVal;
+            }
+            // スライダーUIへの反映
+            const rngS = document.getElementById('rng-curve-solid');
+            const rngP = document.getElementById('rng-curve-preserve');
+            if (rngS) {
+                rngS.value = Math.round(solidPtVal * 100);
+                const valS = document.getElementById('val-curve-solid');
+                if (valS) valS.textContent = solidPtVal.toFixed(2);
+            }
+            if (rngP) {
+                rngP.value = Math.round(preserveVal * 10);
+                const valP = document.getElementById('val-curve-preserve');
+                if (valP) valP.textContent = preserveVal.toFixed(1);
+            }
+
+            console.log(`[AppController/Storage] Settings loaded successfully. (Curve: S=${solidPtVal}, P=${preserveVal})`);
         } catch (e) {
             console.error('[AppController/Storage] Failed to load settings:', e);
         }
@@ -189,7 +225,9 @@ export class AppController {
             'aaronAlpha_speedPriority',
             'aaronAlpha_autoAlign',
             'aaronAlpha_solidExt',
-            'aaronAlpha_undoLimit'
+            'aaronAlpha_undoLimit',
+            'aaronAlpha_curveSolid',
+            'aaronAlpha_curvePreserve'
         ];
         keys.forEach(k => {
             try { localStorage.removeItem(k); } catch (e) { }
@@ -200,6 +238,12 @@ export class AppController {
         if (undoInp) {
             undoInp.value = 3;
             if (this.processor) this.processor.setUndoLimit(3);
+        }
+
+        // [FIX] カーブ値をデフォルト(S=0.95, P=3.0)に強制リセット
+        if (this.processor) {
+            this.processor.params.curveSolidPt = 0.95;
+            this.processor.params.curvePreserve = 3.0;
         }
 
         console.log('[AppController/Storage] Settings reset (Auth keys preserved).');
@@ -440,22 +484,29 @@ export class AppController {
             } else if (this.currentMode === 'solid') {
                 console.log('[AppController/Log] --- Path: solid extraction');
 
-                if (this.isSolidSourceAdjusting) {
-                    // Rust側での合成をやめ、RenderEngineのオーバーレイ機能を使うので、
-                    // ベースである solid_integrated を描画するだけで良い。
-                    // RenderEngineには別途 setSolidSourceLayer で赤マットが渡されている。
-                    console.log('[AppController/Log] --- Path: solid source adjustment (RenderEngine Layer)');
-                    img = p.process('solid_integrated');
-                }
-                // Solid Mode での統合表示 (Layer 2 + 3 + 4)
-                else if (this.solidVis && this.solidVis.pen) {
-                    img = p.process('solid_preview');
-                } else {
-                    img = p.process('solid_integrated');
+                // [ゴミ取りモードの作法に準拠] スマートリフレッシュ要求があれば全域更新
+                if (this._needsSmartRefresh) {
+                    console.log('[AppController/Log] --- Smart Refresh Triggered (Solid Mode: full-sync)');
+                    this._needsSmartRefresh = false;
+                    this._bufferState = 'full';
+                    skipUpdate = false; // 強制的に再計算を実行
                 }
 
+                if (this.isSolidSourceAdjusting) {
+                    console.log('[AppController/Log] --- Path: solid source adjustment (RenderEngine Layer)');
+                    img = p.process('solid_integrated', skipUpdate);
+                } else {
+                    // プレビュー(pen) ON: カラー表示, OFF: アルファ表示
+                    if (this.solidVis && this.solidVis.pen) {
+                        img = p.process('solid_preview', skipUpdate);
+                    } else {
+                        img = p.process('solid_integrated', skipUpdate);
+                    }
+                }
+
+                // 可視化(solid) ON: 定着範囲強調レイヤーを重ねる
                 if (!this.isSolidSourceAdjusting && this.solidVis && this.solidVis.solid) {
-                    overlayImg = p.getSolidOverlay();
+                    overlayImg = p.getSolidOverlay(!!(this.solidVis && this.solidVis.pen), skipUpdate);
                 }
             }
 
@@ -787,6 +838,9 @@ export class AppController {
                 localStorage.setItem('aaronAlpha_solidExt', state);
                 const dp = document.getElementById('solid-v2-debug-panel');
                 if (dp) dp.style.display = state ? 'block' : 'none';
+                // カーブUIパネルの表示切替
+                const curvePanel = document.getElementById('curve-panel');
+                if (curvePanel) curvePanel.style.display = state ? 'block' : 'none';
 
                 // Switch off floating debug panel if disabled
                 if (!state) {
@@ -798,6 +852,50 @@ export class AppController {
             // Initial UI sync
             const dp = document.getElementById('solid-v2-debug-panel');
             if (dp) dp.style.display = chkSolidExt.checked ? 'block' : 'none';
+            const curvePanel = document.getElementById('curve-panel');
+            if (curvePanel) curvePanel.style.display = chkSolidExt.checked ? 'block' : 'none';
+        }
+
+        // ソリッド＆半透明保護カーブ スライダーバインド
+        const rngCurveSolid = document.getElementById('rng-curve-solid');
+        const rngCurvePreserve = document.getElementById('rng-curve-preserve');
+
+        const syncCurveToProcessor = () => {
+            if (!this.processor) return;
+            // スライダー値 → processor.params へ同期（WASM通信は行わない）
+            if (rngCurveSolid) {
+                this.processor.params.curveSolidPt = parseInt(rngCurveSolid.value) / 100;
+                const valEl = document.getElementById('val-curve-solid');
+                if (valEl) valEl.textContent = this.processor.params.curveSolidPt.toFixed(2);
+            }
+            if (rngCurvePreserve) {
+                this.processor.params.curvePreserve = parseInt(rngCurvePreserve.value) / 10;
+                const valEl = document.getElementById('val-curve-preserve');
+                if (valEl) valEl.textContent = this.processor.params.curvePreserve.toFixed(1);
+            }
+        };
+
+        if (rngCurveSolid) {
+            rngCurveSolid.addEventListener('input', syncCurveToProcessor);
+            rngCurveSolid.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                let val = parseInt(rngCurveSolid.value);
+                val += (e.deltaY < 0 ? 1 : -1);
+                val = Math.max(parseInt(rngCurveSolid.min), Math.min(parseInt(rngCurveSolid.max), val));
+                rngCurveSolid.value = val;
+                syncCurveToProcessor();
+            });
+        }
+        if (rngCurvePreserve) {
+            rngCurvePreserve.addEventListener('input', syncCurveToProcessor);
+            rngCurvePreserve.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                let val = parseInt(rngCurvePreserve.value);
+                val += (e.deltaY < 0 ? 1 : -1);
+                val = Math.max(parseInt(rngCurvePreserve.min), Math.min(parseInt(rngCurvePreserve.max), val));
+                rngCurvePreserve.value = val;
+                syncCurveToProcessor();
+            });
         }
 
         // Speed Priority Toggle (Manual Alignment)
@@ -1300,7 +1398,7 @@ export class AppController {
 
                     // 4. Update View & Unlock UI
                     this.isProcessing = false; // フラグを解除しないと updateMainView がブロックされる
-                    this._bufferState = 'partial';
+                    this._needsSmartRefresh = true; // [作法] 次の updateMainView で全域確定
                     this.updateMainView();     // requestUpdateではなく即時実行して確実に画面へ反映させる
 
                     // Allow final render to complete before unlocking UI

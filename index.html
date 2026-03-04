@@ -430,12 +430,54 @@
                             <span data-i18n="basic.correction">補正値</span>: <span id="val-offset-x">0</span>, <span
                                 id="val-offset-y">0</span>
                         </div>
+
+                        <!-- 隠れ機能（旧ソリッドモード拡張） -->
+                        <div id="curve-panel" class="control-group"
+                            style="margin-top: 10px; padding: 8px; border: 1px dashed #555; border-radius: 4px; background: rgba(0,0,0,0.2); display: none;">
+                            <div style="font-size: 11px; color: #ccc; margin-bottom: 8px; font-weight: bold; border-bottom: 1px solid #444; padding-bottom: 4px;"
+                                data-i18n="basic.curveTitle">ソリッド＆半透明保護カーブ</div>
+                            <label
+                                style="display:flex; justify-content:space-between; font-size: 11px; margin-bottom: 4px;"
+                                data-help-key="help.tip.basic.curveSolid">
+                                <span data-i18n="basic.curveSolid">定着ライン (S)</span>
+                                <span id="val-curve-solid" style="color: #00ffcc; font-weight: bold;">0.95</span>
+                            </label>
+                            <input type="range" id="rng-curve-solid" min="1" max="100" value="95"
+                                style="margin-bottom: 10px;">
+                            <label
+                                style="display:flex; justify-content:space-between; font-size: 11px; margin-bottom: 4px;"
+                                data-help-key="help.tip.basic.curvePreserve">
+                                <span data-i18n="basic.curvePreserve">保護パワー (P)</span>
+                                <span id="val-curve-preserve" style="color: #00ffcc; font-weight: bold;">3.0</span>
+                            </label>
+                            <input type="range" id="rng-curve-preserve" min="10" max="100" value="30">
+                        </div>
+
                         <div style="margin-top: 10px;">
                             <button type="button" id="btn-reset-all" class="btn-reset-rich"
                                 data-help-key="help.tip.basic.reset" style="width: 100%;" data-i18n="basic.resetAll">↺
                                 リセット</button>
                         </div>
                     </section>
+
+                    <!-- ソリッド＆半透明保護カーブ（拡張ON時のみ表示） -->
+                    <div id="curve-panel" class="control-group"
+                        style="margin-top: 10px; padding: 8px; border: 1px dashed #555; border-radius: 4px; background: rgba(0,0,0,0.2); display: none;">
+                        <div style="font-size: 10px; color: #aaa; margin-bottom: 5px;" data-i18n="basic.curveTitle">
+                            ソリッド＆半透明保護カーブ</div>
+                        <label style="display:flex; justify-content:space-between; font-size: 11px;"
+                            data-help-key="help.tip.basic.curveSolid">
+                            <span data-i18n="basic.curveSolid">定着ライン (S)</span>
+                            <span id="val-curve-solid">0.95</span>
+                        </label>
+                        <input type="range" id="rng-curve-solid" min="1" max="100" value="95">
+                        <label style="display:flex; justify-content:space-between; font-size: 11px; margin-top: 5px;"
+                            data-help-key="help.tip.basic.curvePreserve">
+                            <span data-i18n="basic.curvePreserve">保護パワー (P)</span>
+                            <span id="val-curve-preserve">3.0</span>
+                        </label>
+                        <input type="range" id="rng-curve-preserve" min="10" max="100" value="30">
+                    </div>
 
                     <div class="export-area" style="margin-top: 20px; padding-top: 0; border-top: none;">
                         <div class="control-group common-bg-group">

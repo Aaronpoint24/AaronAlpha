@@ -65,7 +65,11 @@ export class ImageProcessor {
             erode: 0,
             calcMode: 'avg',
             typeOfAlpha: 'hard', // 'hard' (0) or 'soft' (1)
-            overlayMode: false   // true (1) or false (0)
+            overlayMode: false,  // true (1) or false (0)
+            // ソリッド＆半透明保護カーブ（常に適用、表示フラグに依存しない）
+            useAlphaCurve: true,
+            curveSolidPt: 0.95,  // 定着ライン (S) デフォルト
+            curvePreserve: 3.0   // 保護パワー (P) デフォルト
         };
 
         this.offset = { x: 0, y: 0 };
@@ -193,7 +197,16 @@ export class ImageProcessor {
         const blackData = this.getImageData(this.blackBitmap);
         const whiteData = this.getImageData(this.whiteBitmap);
 
-        load_images(this.width, this.height, blackData, whiteData, autoAlign);
+        // [アトミック通信] 画像ロード時に最新のカーブ設定を一括送信
+        const modes = { 'max': 0, 'avg': 1, 'lum': 2 };
+        const calcModeVal = modes[this.params.calcMode] !== undefined ? modes[this.params.calcMode] : 1;
+        load_images(
+            this.width, this.height, blackData, whiteData, autoAlign,
+            calcModeVal,
+            this.params.useAlphaCurve,
+            this.params.curveSolidPt,
+            this.params.curvePreserve
+        );
 
         const t1 = performance.now();
         console.log(`[ImageProcessor/Log] --- WASM: load_images executed (Time: ${(t1 - t0).toFixed(2)}ms)`);
@@ -225,8 +238,14 @@ export class ImageProcessor {
         if (this.params.hasOwnProperty(key)) {
             this.params[key] = value;
             if (key === 'calcMode') {
+                // [アトミック通信] ロジック変更時にもカーブ設定を一括送信
                 const modes = { 'max': 0, 'avg': 1, 'lum': 2 };
-                set_calc_mode(modes[value] !== undefined ? modes[value] : 1);
+                set_calc_mode(
+                    modes[value] !== undefined ? modes[value] : 1,
+                    this.params.useAlphaCurve,
+                    this.params.curveSolidPt,
+                    this.params.curvePreserve
+                );
             }
             return true;
         }
@@ -344,15 +363,15 @@ export class ImageProcessor {
             case 'solid': ptr = this.solidPtr; break;
             case 'mask': ptr = this.maskPtr; break;
             case 'solid_integrated':
-                build_solid_base_image();
+                if (!skipUpdate) build_solid_base_image();
                 ptr = this.solidBasePtr;
                 break;
             case 'solid_export':
-                finalize_solid_mode();
+                if (!skipUpdate) finalize_solid_mode();
                 ptr = this.solidExportPtr;
                 break;
             case 'solid_preview':
-                build_solid_preview();
+                if (!skipUpdate) build_solid_preview();
                 ptr = this.solidExportPtr;
                 break;
             case 'solid_source_preview':
@@ -443,10 +462,13 @@ export class ImageProcessor {
         console.log('[ImageProcessor] copyC1sToSolidBuffer completed');
     }
 
-    /** 可視化オーバーレイを取得（緑マスク） */
-    getSolidOverlay() {
+    /** 可視化オーバーレイを取得（緑マスク）
+     * @param {boolean} isPreview - プレビューONか否か
+     * @param {boolean} skipUpdate - WASM更新をスキップするか
+     */
+    getSolidOverlay(isPreview, skipUpdate) {
         if (!this.wasm || !this.width || !this.height) return null;
-        build_solid_overlay();
+        if (!skipUpdate) build_solid_overlay(isPreview);
         this.finalPtr = get_final_buffer_ptr();
         if (!this.finalPtr) return null;
         const size = this.width * this.height * 4;

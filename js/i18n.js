@@ -24,6 +24,11 @@ const dictionaries = {
         'basic.correction': 'Correction',
         'basic.resetAll': '↺ Reset',
 
+        // Curve (Solid & Translucent Protection)
+        'basic.curveTitle': 'Solid & Translucent Protection Curve',
+        'basic.curveSolid': 'Fix Line (S)',
+        'basic.curvePreserve': 'Protection Power (P)',
+
         // Trash
         'trash.title': 'Trash mode(Intermediate)',
         'trash.adjustPos': '📍 Adjust Position',
@@ -90,7 +95,7 @@ const dictionaries = {
         'settings.save': 'Save',
         'settings.speedPriority': 'Speed Priority (Low Quality Alignment)',
         'settings.autoAlign': 'Auto Align',
-        'settings.solidExt': 'Solid Mode Extension',
+        'settings.solidExt': 'Hidden Features',
         'settings.undoLimit': 'Lasso Undo Limit (3-10)',
         'settings.resetAll': 'Reset All Settings',
         'settings.issueAuthBtn': 'Issue Auth Key',
@@ -106,7 +111,7 @@ const dictionaries = {
         'auth.failed': 'Authentication Failed',
         'auth.verified': 'Verified',
         'auth.unverified': 'Unverified',
-        'settings.solidExt': 'Solid Mode Extension',
+        'settings.solidExt': 'Hidden Features',
         'settings.undoLimit': 'Lasso Undo Limit (3-10)',
         'settings.resetAll': 'Reset All Settings',
         'settings.issueAuthBtn': 'Issue Auth Key',
@@ -175,6 +180,9 @@ const dictionaries = {
         'help.tip.basic.reset': '<p>Reset this mode.</p>',
         'help.tip.basic.export': '<p>Outputs a transparent PNG.<br>※ Trash mode logic is disabled when unauthenticated.</p>',
 
+        'help.tip.basic.curveSolid': '<p>Alpha values above this threshold will be forced to fully opaque.</p>',
+        'help.tip.basic.curvePreserve': '<p>The higher the value, the more strongly semi-transparent areas are protected.</p>',
+
         'help.tip.trash.thres': '<p>Removes noise that is close to transparent.</p>',
         'help.tip.trash.align': '<p>Manually adjust the alignment.<br>If images are misaligned, dark spots will appear in opaque areas.<br>Adjust so the overall image becomes as white as possible.</p>',
         'help.tip.trash.matte': '<p>Areas outside the selection become entirely transparent.<br>Garbage matte feature.</p>',
@@ -231,6 +239,11 @@ const dictionaries = {
         'basic.export': 'PNG出力',
         'basic.correction': '補正値',
         'basic.resetAll': '↺ リセット',
+
+        // カーブ（ソリッド＆半透明保護）
+        'basic.curveTitle': 'ソリッド＆半透明保護カーブ',
+        'basic.curveSolid': '定着ライン (S)',
+        'basic.curvePreserve': '保護パワー (P)',
 
         // Trash
         'trash.title': 'ゴミ取りモード（中級者）',
@@ -298,7 +311,7 @@ const dictionaries = {
         'settings.save': '保存',
         'settings.speedPriority': '手動位置調整速度優先（低画質）',
         'settings.autoAlign': '位置自動補正',
-        'settings.solidExt': 'ソリッドモード拡張',
+        'settings.solidExt': '隠れ機能',
         'settings.undoLimit': '投縄Undo(3～10)',
         'settings.resetAll': '全ての設定を初期化',
         'settings.issueAuthBtn': '認証発行 ',
@@ -385,6 +398,9 @@ const dictionaries = {
         'help.tip.basic.bg': '<p>背景色を選択できます。</p>',
         'help.tip.basic.reset': '<p>このモードをリセットします。</p>',
         'help.tip.basic.export': '<p>透過PNGを出力します。<br>※未認証時はゴミ取りが無効になります。</p>',
+
+        'help.tip.basic.curveSolid': '<p>この閾値以上のアルファが完全不透明に引き上げられます。</p>',
+        'help.tip.basic.curvePreserve': '<p>値が高いほど半透明部分が強く保護されます。</p>',
 
         'help.tip.trash.thres': '<p>透明に近いノイズを除去します。</p>',
         'help.tip.trash.align': '<p>手動で位置を調整します。<br>画像がズレていると不透明部分に暗い場所が沢山できます。<br>なるべく全体が白くなるように調整して下さい。</p>',

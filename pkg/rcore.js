@@ -66,9 +66,10 @@ export function build_solid_base_image() {
 
 /**
  * 可視化オーバーレイをfinal_bufferに構築する
+ * @param {boolean} is_preview_on
  */
-export function build_solid_overlay() {
-    wasm.build_solid_overlay();
+export function build_solid_overlay(is_preview_on) {
+    wasm.build_solid_overlay(is_preview_on);
 }
 
 export function build_solid_preview() {
@@ -266,13 +267,17 @@ export function is_authenticated() {
  * @param {Uint8Array} black_data
  * @param {Uint8Array} white_data
  * @param {boolean} auto_align
+ * @param {number} calc_mode
+ * @param {boolean} use_curve
+ * @param {number} solid_pt
+ * @param {number} preserve
  */
-export function load_images(width, height, black_data, white_data, auto_align) {
+export function load_images(width, height, black_data, white_data, auto_align, calc_mode, use_curve, solid_pt, preserve) {
     const ptr0 = passArray8ToWasm0(black_data, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
     const ptr1 = passArray8ToWasm0(white_data, wasm.__wbindgen_malloc);
     const len1 = WASM_VECTOR_LEN;
-    wasm.load_images(width, height, ptr0, len0, ptr1, len1, auto_align);
+    wasm.load_images(width, height, ptr0, len0, ptr1, len1, auto_align, calc_mode, use_curve, solid_pt, preserve);
 }
 
 /**
@@ -332,10 +337,20 @@ export function reset_trash_mask() {
 }
 
 /**
- * @param {number} mode
+ * @param {boolean} is_valid
  */
-export function set_calc_mode(mode) {
-    wasm.set_calc_mode(mode);
+export function set_auth_state(is_valid) {
+    wasm.set_auth_state(is_valid);
+}
+
+/**
+ * @param {number} mode
+ * @param {boolean} use_curve
+ * @param {number} solid_pt
+ * @param {number} preserve
+ */
+export function set_calc_mode(mode, use_curve, solid_pt, preserve) {
+    wasm.set_calc_mode(mode, use_curve, solid_pt, preserve);
 }
 
 /**
