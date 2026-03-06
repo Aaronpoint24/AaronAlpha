@@ -45,4 +45,7 @@ i18n_table.md
 # Deployment folder
 deploy_final/
 
+# Documentation (Local Only)
+docs/
+
 
