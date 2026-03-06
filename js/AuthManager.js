@@ -1,12 +1,18 @@
 import { t } from './i18n.js';
-import { authenticate, is_authenticated } from '../pkg/rcore.js';
+import { authenticate, is_authenticated, verify_auth_token } from '../pkg/rcore.js';
 import { Dialog } from './Dialog.js';
 import { legalTexts } from './legal_pages.js';
 import { getCurrentLang } from './i18n.js';
 
+// Cloudflare Worker の認証検証エンドポイント
+const VERIFY_URL = 'https://aaronalpha.aaronpoint.workers.dev/verify';
+
 /**
  * Authentication Manager
  * Handles local key storage and communication with Rust core.
+ * [SECURITY] サーバーから受け取った署名付きトークンを Rust に渡し、
+ *            Rust 内部で HMAC-SHA256 検証を行う。
+ *            JS 側から認証フラグを直接操作する手段は存在しない。
  */
 export class AuthManager {
     constructor() {
@@ -34,10 +40,45 @@ export class AuthManager {
     }
 
     /**
-     * Initialize authentication flow.
-     * Checks if key exists in storage, if so, tries to authenticate.
-     * If not, prompts user.
+     * Cloudflare Worker にキーを送信し、署名付きトークンを取得する。
+     * 取得したトークンを Rust の verify_auth_token に渡して内部検証を行う。
+     * @param {string} key ライセンスキー
+     * @returns {Promise<boolean>} Rust 側での検証が成功すれば true
      */
+    async verifyWithServer(key) {
+        try {
+            console.log('[AuthManager] Verifying key with Cloudflare Worker...');
+            const res = await fetch(VERIFY_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                console.log('[AuthManager] Server response received.');
+
+                if (data.valid === true && data.token) {
+                    // [SECURITY] トークンを Rust 側に渡して署名検証
+                    console.log('[AuthManager] Received signed token, passing to Rust for verification...');
+                    const rustResult = verify_auth_token(data.token);
+                    console.log(`[AuthManager] Rust verify_auth_token result: ${rustResult}`);
+                    return rustResult;
+                } else {
+                    console.warn('[AuthManager] Server rejected key (valid=false or no token).');
+                    return false;
+                }
+            } else {
+                console.warn(`[AuthManager] Server returned status ${res.status}`);
+                return false;
+            }
+        } catch (e) {
+            console.error('[AuthManager] Network error during verification:', e);
+            // ネットワークエラー時は認証失敗とする（フォールバックなし）
+            console.warn('[AuthManager] Network error - authentication denied for security.');
+            return false;
+        }
+    }
+
     async init() {
         const storedKey = localStorage.getItem(this.storageKey);
 
@@ -45,20 +86,19 @@ export class AuthManager {
         this.bindHeaderLinks();
 
         if (storedKey) {
-            console.log('[AuthManager] Found stored key, attempting authentication...');
+            console.log('[AuthManager] Found stored key, verifying with server...');
             try {
-                const result = authenticate(storedKey);
-                if (result) {
-                    console.log('[AuthManager] Auto-authentication successful.');
+                const isValid = await this.verifyWithServer(storedKey);
+                if (isValid) {
+                    console.log('[AuthManager] Auto-authentication successful (server + Rust verified).');
                     this.notifyChange(true);
                 } else {
-                    console.warn('[AuthManager] Stored key is invalid.');
+                    console.warn('[AuthManager] Stored key is invalid (server/Rust rejected).');
                     this.notifyChange(false);
-                    // On error, we continue to show welcome if it's really the first time
                     this.checkFirstVisit();
                 }
             } catch (e) {
-                console.error('[AuthManager] Error calling Rust verify:', e);
+                console.error('[AuthManager] Error during init verification:', e);
                 this.notifyChange(false);
             }
         } else {
@@ -136,19 +176,35 @@ export class AuthManager {
     }
 
     /**
-     * 認証発行ボタンの動作 (現在は無効)
+     * Open Polar Shop with guidance if Japanese
      */
     async openPolarShop() {
-        // アーロン様のご指示により、現在は無効化
-        console.log('[AuthManager] Auth issuance is currently disabled.');
+        const lang = getCurrentLang();
+        if (lang === 'ja') {
+            const confirmed = await Dialog.confirm(
+                "決済システム（Polar.sh）は英語表記となっています。\n決済手順の解説画像を表示しますか？",
+                "Polar.sh 決済のご案内"
+            );
+            if (confirmed) {
+                // Show guide image
+                await Dialog.show({
+                    title: "Polar.sh 決済手順",
+                    message: "1. 決済ページでメールアドレスを入力\n2. カード情報を入力\n3. 完了後に表示（またはメール）されるキーをコピーしてください。\n\n※この後ショップページを開きます。",
+                    imagePath: "image/polar_sh_guide_jp.png",
+                    type: 'alert',
+                    wideMode: true
+                });
+            }
+        }
+
+        // Open shop in new tab
+        window.open('https://polar.sh/Aaronpoint', '_blank');
     }
 
     /**
      * Prompt user for key using Custom Dialog.
-     * (Kept for legacy or specific manual triggers)
      */
     async promptUser() {
-        // ... (Already covered by checkFirstVisit and settings UI)
         const inputKey = await Dialog.prompt(t('auth.welcomeMsg'), '', t('auth.welcomeTitle'));
         if (inputKey !== null) {
             this.login(inputKey);
@@ -163,11 +219,11 @@ export class AuthManager {
 
         const trimmedKey = key.trim();
         try {
-            console.log(`[AuthManager] Attempting login with key: [${trimmedKey}]`);
-            const success = authenticate(trimmedKey);
-            console.log(`[AuthManager] Rust authenticate result: ${success}`);
+            console.log(`[AuthManager] Attempting login with server verification: [${trimmedKey.substring(0, 4)}...]`);
+            const isValid = await this.verifyWithServer(trimmedKey);
+            console.log(`[AuthManager] Server + Rust verify result: ${isValid}`);
 
-            if (success) {
+            if (isValid) {
                 localStorage.setItem(this.storageKey, trimmedKey);
                 await Dialog.alert(t('auth.success'));
 
@@ -197,21 +253,23 @@ export class AuthManager {
     logout() {
         console.log('[AuthManager] Logging out, clearing storage...');
         localStorage.removeItem(this.storageKey);
-        localStorage.removeItem(this.visitKey); // Reset visit status to allow re-prompt on refresh
+        localStorage.removeItem(this.visitKey);
 
-        // Also call rust to reset state
+        // Rust 側の AUTH_STATE をリセットするには、無効なトークンを送る
+        // (set_auth_state は削除されたため、直接操作は不可)
         try {
-            authenticate(""); // Force reset in Rust
+            authenticate(""); // レガシー関数は常に false を返す → AUTH_STATE は変わらないが、ログアウト時はアプリリロードで対応
         } catch (e) { }
         this.notifyChange(false);
+
+        // ページリロードで Rust の AUTH_STATE も確実にリセット
+        location.reload();
     }
 
     isAuthenticated() {
         try {
-            const res = is_authenticated();
-            return res;
+            return is_authenticated();
         } catch (e) {
-            console.error('[AuthManager] Error calling Rust is_authenticated:', e);
             return false;
         }
     }

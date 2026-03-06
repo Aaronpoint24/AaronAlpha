@@ -50,11 +50,13 @@ export function apply_solid_to_alpha_zero() {
 }
 
 /**
- * @param {string} key
+ * レガシー互換用: 旧来の authenticate は常に false を返す。
+ * JS 側が旧 API を呼んでも認証は一切通らない。
+ * @param {string} _key
  * @returns {boolean}
  */
-export function authenticate(key) {
-    const ptr0 = passStringToWasm0(key, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+export function authenticate(_key) {
+    const ptr0 = passStringToWasm0(_key, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
     const ret = wasm.authenticate(ptr0, len0);
     return ret !== 0;
@@ -337,13 +339,6 @@ export function reset_trash_mask() {
 }
 
 /**
- * @param {boolean} is_valid
- */
-export function set_auth_state(is_valid) {
-    wasm.set_auth_state(is_valid);
-}
-
-/**
  * @param {number} mode
  * @param {boolean} use_curve
  * @param {number} solid_pt
@@ -410,6 +405,24 @@ export function update_solid_params(solid_level, ray_dist, coast_dist, aa_thres,
  */
 export function update_trash_mode(threshold, type_of_alpha, overlay_mode, t, b, l, r, vp_x, vp_y, vp_w, vp_h) {
     wasm.update_trash_mode(threshold, type_of_alpha, overlay_mode, t, b, l, r, vp_x, vp_y, vp_w, vp_h);
+}
+
+/**
+ * Cloudflare Worker が発行した署名付きトークンを検証する。
+ * トークン形式: Base64("{payload_json}.{signature_hex}")
+ *   payload_json = {"key":"...", "ts": unix_timestamp}
+ *   signature = HMAC-SHA256(payload_json, shared_secret)
+ *
+ * 検証に合格した場合のみ AUTH_STATE を true にする。
+ * JS 側から直接認証フラグを操作する手段は存在しない。
+ * @param {string} token
+ * @returns {boolean}
+ */
+export function verify_auth_token(token) {
+    const ptr0 = passStringToWasm0(token, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.verify_auth_token(ptr0, len0);
+    return ret !== 0;
 }
 
 function __wbg_get_imports() {

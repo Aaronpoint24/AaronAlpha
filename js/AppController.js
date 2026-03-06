@@ -388,13 +388,19 @@ export class AppController {
             }
         });
 
-        // 新設の「認証発行」ボタン制御 (現在は強制無効化)
+        // 新設の「認証発行」ボタン制御
         const btnIssueAuth = document.getElementById('btn-issue-auth');
         if (btnIssueAuth) {
-            btnIssueAuth.disabled = true;
-            btnIssueAuth.style.opacity = '0.5';
-            btnIssueAuth.style.cursor = 'not-allowed';
-            btnIssueAuth.style.filter = 'grayscale(100%)';
+            btnIssueAuth.disabled = isAuthenticated;
+            if (isAuthenticated) {
+                btnIssueAuth.style.opacity = '0.5';
+                btnIssueAuth.style.cursor = 'not-allowed';
+                btnIssueAuth.style.filter = 'grayscale(100%)';
+            } else {
+                btnIssueAuth.style.opacity = '1';
+                btnIssueAuth.style.cursor = 'pointer';
+                btnIssueAuth.style.filter = 'none';
+            }
         }
 
         console.log(`[AppController] Auth UI updated: ${isAuthenticated}`);

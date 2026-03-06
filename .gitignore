@@ -45,8 +45,9 @@ i18n_table.md
 # Deployment folder
 deploy_final/
 
-# Documentation (Local Only)
-docs/
+# Documentation
+# docs/ is now tracked for public docs
+secure_docs/
 
 # Cloudflare Workers (Local Only)
 AaronAlpha_CloudflareWorkers/

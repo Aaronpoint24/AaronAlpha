@@ -11,7 +11,11 @@ export class ExportResult {
 
 export function apply_solid_to_alpha_zero(): void;
 
-export function authenticate(key: string): boolean;
+/**
+ * レガシー互換用: 旧来の authenticate は常に false を返す。
+ * JS 側が旧 API を呼んでも認証は一切通らない。
+ */
+export function authenticate(_key: string): boolean;
 
 export function build_solid_base_image(): void;
 
@@ -106,8 +110,6 @@ export function reset_solid_mode(): void;
 
 export function reset_trash_mask(): void;
 
-export function set_auth_state(is_valid: boolean): void;
-
 export function set_calc_mode(mode: number, use_curve: boolean, solid_pt: number, preserve: number): void;
 
 export function set_offset(ox: number, oy: number): void;
@@ -120,6 +122,17 @@ export function update_alignment_alpha_only(offset_x: number, offset_y: number, 
 export function update_solid_params(solid_level: number, ray_dist: number, coast_dist: number, aa_thres: number, gm_t: number, gm_b: number, gm_l: number, gm_r: number): void;
 
 export function update_trash_mode(threshold: number, type_of_alpha: number, overlay_mode: number, t: number, b: number, l: number, r: number, vp_x: number, vp_y: number, vp_w: number, vp_h: number): void;
+
+/**
+ * Cloudflare Worker が発行した署名付きトークンを検証する。
+ * トークン形式: Base64("{payload_json}.{signature_hex}")
+ *   payload_json = {"key":"...", "ts": unix_timestamp}
+ *   signature = HMAC-SHA256(payload_json, shared_secret)
+ *
+ * 検証に合格した場合のみ AUTH_STATE を true にする。
+ * JS 側から直接認証フラグを操作する手段は存在しない。
+ */
+export function verify_auth_token(token: string): boolean;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
@@ -164,12 +177,12 @@ export interface InitOutput {
     readonly process_export: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
     readonly reset_solid_mode: () => void;
     readonly reset_trash_mask: () => void;
-    readonly set_auth_state: (a: number) => void;
     readonly set_calc_mode: (a: number, b: number, c: number, d: number) => void;
     readonly set_offset: (a: number, b: number) => void;
     readonly update_alignment_alpha_only: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: number) => void;
     readonly update_solid_params: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
     readonly update_trash_mode: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number) => void;
+    readonly verify_auth_token: (a: number, b: number) => number;
     readonly init_rust: () => void;
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
