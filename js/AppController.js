@@ -180,10 +180,10 @@ export class AppController {
                 }
             }
 
-            // [ソリッド＆半透明保護カーブ] ロード（デフォルト: S=0.95, P=3.0）
+            // [ソリッド＆半透明保護カーブ] ロード（デフォルト: S=1.0, P=3.0）
             const savedSolidPt = localStorage.getItem('aaronAlpha_curveSolid');
             const savedPreserve = localStorage.getItem('aaronAlpha_curvePreserve');
-            const solidPtVal = savedSolidPt !== null ? parseFloat(savedSolidPt) : 0.95;
+            const solidPtVal = savedSolidPt !== null ? parseFloat(savedSolidPt) : 1.0;
             const preserveVal = savedPreserve !== null ? parseFloat(savedPreserve) : 3.0;
             // processor.params への同期（表示フラグに関わらず常に適用）
             if (this.processor) {
@@ -206,6 +206,10 @@ export class AppController {
             }
 
             console.log(`[AppController/Storage] Settings loaded successfully. (Curve: S=${solidPtVal}, P=${preserveVal})`);
+
+            // [隠れ機能] デフォルトで非表示
+            const settingItem = document.getElementById('setting-item-solid-ext');
+            if (settingItem) settingItem.style.display = 'none';
         } catch (e) {
             console.error('[AppController/Storage] Failed to load settings:', e);
         }
@@ -240,9 +244,9 @@ export class AppController {
             if (this.processor) this.processor.setUndoLimit(3);
         }
 
-        // [FIX] カーブ値をデフォルト(S=0.95, P=3.0)に強制リセット
+        // [FIX] カーブ値をデフォルト(S=1.0, P=3.0)に強制リセット
         if (this.processor) {
-            this.processor.params.curveSolidPt = 0.95;
+            this.processor.params.curveSolidPt = 1.0;
             this.processor.params.curvePreserve = 3.0;
         }
 
@@ -377,26 +381,17 @@ export class AppController {
                 btn.classList.remove('btn-disabled');
                 btn.removeAttribute('data-disabled-msg');
                 btn.removeAttribute('title');
-            } else {
-                btn.classList.add('btn-disabled');
-                btn.setAttribute('data-disabled-msg', t('auth.reqAuth'));
-                btn.setAttribute('title', t('auth.promptMsg') || 'Basic認証が必要です');
             }
         });
 
         // 新設の「認証発行」ボタン制御
         const btnIssueAuth = document.getElementById('btn-issue-auth');
+        // 認証発行ボタン (現在は開発中のため強制無効化)
         if (btnIssueAuth) {
-            btnIssueAuth.disabled = isAuthenticated;
-            if (isAuthenticated) {
-                btnIssueAuth.style.opacity = '0.5';
-                btnIssueAuth.style.cursor = 'not-allowed';
-                btnIssueAuth.style.filter = 'grayscale(100%)';
-            } else {
-                btnIssueAuth.style.opacity = '1';
-                btnIssueAuth.style.cursor = 'pointer';
-                btnIssueAuth.style.filter = 'none';
-            }
+            btnIssueAuth.disabled = true;
+            btnIssueAuth.style.opacity = '0.5';
+            btnIssueAuth.style.cursor = 'not-allowed';
+            btnIssueAuth.style.filter = 'grayscale(100%)';
         }
 
         console.log(`[AppController] Auth UI updated: ${isAuthenticated}`);
@@ -1318,7 +1313,7 @@ export class AppController {
                 slLevel.value = val;
                 if (valLevel) valLevel.textContent = val;
                 const rayDist = parseInt(document.getElementById('rng-raycast-dist')?.value || '5');
-                this.processor.updateSolidMode(parseInt(val), 64, rayDist);
+                this.processor.updateSolidMode(parseInt(val), rayDist);
                 this.updateMainView();
             };
             slLevel.addEventListener('input', (e) => updateLevel(e.target.value));
@@ -1383,7 +1378,7 @@ export class AppController {
                     const dirCount = 6; // Hardcoded to 6 (Fixed encirclement threshold)
 
                     // Update Params first (this recalculates solid_buffer from soft_mat_buffer)
-                    this.processor.updateSolidMode(level, 64, rayDist, coastDist, aaThres, dirCount);
+                    this.processor.updateSolidMode(level, rayDist, coastDist, aaThres);
 
                     this.processor.pushUndoState('solid'); // Undo用の状態保存
 
@@ -1394,7 +1389,7 @@ export class AppController {
                     const slLevel = document.getElementById('rng-solid-level');
                     const valLevel = document.getElementById('val-solid-level');
                     if (slLevel) { slLevel.value = 255; if (valLevel) valLevel.textContent = '255'; }
-                    this.processor.updateSolidMode(255, 64, rayDist, coastDist, aaThres, dirCount);
+                    this.processor.updateSolidMode(255, rayDist, coastDist, aaThres);
 
                     // 4. Update View & Unlock UI
                     this.isProcessing = false; // フラグを解除しないと updateMainView がブロックされる
@@ -1480,6 +1475,21 @@ export class AppController {
     bindKeyEvents() {
         // --- keydown ---
         window.addEventListener('keydown', (e) => {
+            // [隠れ機能] Ctrl + Shift + Z で設定項目のトグル表示
+            // 画像の有無に関わらず、設定画面が開いているなら動作させる
+            if (e.ctrlKey && e.shiftKey && e.code === 'KeyZ') {
+                const settingsModal = document.getElementById('settings-modal');
+                if (settingsModal && settingsModal.style.display !== 'none') {
+                    const settingItem = document.getElementById('setting-item-solid-ext');
+                    if (settingItem) {
+                        const isHidden = getComputedStyle(settingItem).display === 'none';
+                        settingItem.style.display = isHidden ? 'flex' : 'none';
+                        console.log(`[AppController/Log] Secret setting toggled: ${isHidden}`);
+                    }
+                    return;
+                }
+            }
+
             if (!this.processor.hasImages()) return;
 
             // Z key - Free Lasso override in comparison mode

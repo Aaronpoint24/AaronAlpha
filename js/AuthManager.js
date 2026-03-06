@@ -1,5 +1,5 @@
 import { t } from './i18n.js';
-import { authenticate, is_authenticated } from '../pkg/rcore.js';
+import { authenticate, is_authenticated, set_auth_state } from '../pkg/rcore.js';
 import { Dialog } from './Dialog.js';
 import { legalTexts } from './legal_pages.js';
 import { getCurrentLang } from './i18n.js';
@@ -12,65 +12,27 @@ export class AuthManager {
     constructor() {
         this.storageKey = 'aaronAlpha_auth_key';
         this.visitKey = 'aaronAlpha_has_visited';
-        this.onAuthChange = null; // Callback for UI updates
+        this.onAuthChange = null;
     }
 
-    /**
-     * Set callback for auth status changes
-     * @param {Function} callback (isAuthenticated: boolean) => void
-     */
     setOnAuthChange(callback) {
         this.onAuthChange = callback;
     }
 
-    /**
-     * Notify listeners of auth change
-     * @param {boolean} isAuthenticated 
-     */
     notifyChange(isAuthenticated) {
         if (this.onAuthChange) {
             this.onAuthChange(isAuthenticated);
         }
     }
 
-    /**
-     * Initialize authentication flow.
-     * Checks if key exists in storage, if so, tries to authenticate.
-     * If not, prompts user.
-     */
     async init() {
         const storedKey = localStorage.getItem(this.storageKey);
-
-        // Bind Header Links
         this.bindHeaderLinks();
 
-        if (storedKey) {
-            console.log('[AuthManager] Found stored key, attempting authentication...');
-            try {
-                const result = authenticate(storedKey);
-                if (result) {
-                    console.log('[AuthManager] Auto-authentication successful.');
-                    this.notifyChange(true);
-                } else {
-                    console.warn('[AuthManager] Stored key is invalid.');
-                    this.notifyChange(false);
-                    // On error, we continue to show welcome if it's really the first time
-                    this.checkFirstVisit();
-                }
-            } catch (e) {
-                console.error('[AuthManager] Error calling Rust verify:', e);
-                this.notifyChange(false);
-            }
-        } else {
-            console.log('[AuthManager] No stored key found.');
-            this.notifyChange(false);
-            this.checkFirstVisit();
-        }
+        // 開発中のため、初期状態では未認証として扱う
+        this.notifyChange(false);
     }
 
-    /**
-     * Bind click events to legal links in header
-     */
     bindHeaderLinks() {
         const links = [
             { id: 'lnk-terms', key: 'terms' },
@@ -102,110 +64,26 @@ export class AuthManager {
         });
     }
 
-    /**
-     * Check if first visit and show welcome dialog
-     */
     async checkFirstVisit() {
-        const hasVisited = localStorage.getItem(this.visitKey);
-        if (!hasVisited) {
-            localStorage.setItem(this.visitKey, 'true');
-
-            // Show welcome dialog with 2 buttons
-            const res = await Dialog.show({
-                title: t('auth.welcomeTitle'),
-                message: t('auth.welcomeMsg'),
-                type: 'confirm',
-                yesLabel: t('auth.btnGoAuth'),
-                noLabel: t('auth.btnTry')
-            });
-
-            if (res === true) {
-                // "Go to Auth" -> Open settings
-                const btnSettings = document.getElementById('btn-settings');
-                if (btnSettings) btnSettings.click();
-
-                const inpKey = document.getElementById('inp-auth-key');
-                if (inpKey) {
-                    setTimeout(() => inpKey.focus(), 300);
-                }
-            } else {
-                // "Try it out" -> Do nothing, stay on basic
-                console.log('[AuthManager] User chose to try out first.');
-            }
-        }
+        // 現在は無効化
     }
 
     /**
-     * Open Polar Shop with guidance if Japanese
+     * 認証発行ボタンの動作 (現在は無効)
      */
     async openPolarShop() {
-        const lang = getCurrentLang();
-        if (lang === 'ja') {
-            const confirmed = await Dialog.confirm(
-                "決済システム（Polar.sh）は英語表記となっています。\n決済手順の解説画像を表示しますか？",
-                "Polar.sh 決済のご案内"
-            );
-            if (confirmed) {
-                // Show guide image
-                await Dialog.show({
-                    title: "Polar.sh 決済手順",
-                    message: "1. 決済ページでメールアドレスを入力\n2. カード情報を入力\n3. 完了後に表示（またはメール）されるキーをコピーしてください。\n\n※この後ショップページを開きます。",
-                    imagePath: "image/polar_sh_guide_jp.png",
-                    type: 'alert',
-                    wideMode: true
-                });
-            }
-        }
-
-        // Open shop in new tab
-        window.open('https://polar.sh/Aaronpoint', '_blank');
+        console.log('[AuthManager] Auth issuance is currently disabled.');
+        // 何もしない
     }
 
-    /**
-     * Prompt user for key using Custom Dialog.
-     * (Kept for legacy or specific manual triggers)
-     */
     async promptUser() {
-        // ... (Already covered by checkFirstVisit and settings UI)
-        const inputKey = await Dialog.prompt(t('auth.welcomeMsg'), '', t('auth.welcomeTitle'));
-        if (inputKey !== null) {
-            this.login(inputKey);
-        }
+        // 現在は無効
     }
 
     async login(key) {
-        if (!key) {
-            this.notifyChange(false);
-            return false;
-        }
-
-        const trimmedKey = key.trim();
-        try {
-            console.log(`[AuthManager] Attempting login with key: [${trimmedKey}]`);
-            const success = authenticate(trimmedKey);
-            console.log(`[AuthManager] Rust authenticate result: ${success}`);
-
-            if (success) {
-                localStorage.setItem(this.storageKey, trimmedKey);
-                await Dialog.alert(t('auth.success'));
-
-                const inputEl = document.getElementById('inp-auth-key');
-                if (inputEl) {
-                    inputEl.value = trimmedKey;
-                }
-
-                this.notifyChange(true);
-                return true;
-            } else {
-                await Dialog.alert(t('auth.failed'));
-                this.notifyChange(false);
-                return false;
-            }
-        } catch (e) {
-            console.error('[AuthManager] Login error:', e);
-            this.notifyChange(false);
-            return false;
-        }
+        // 開発中のため、現在は常に失敗または何もしない状態とする
+        this.notifyChange(false);
+        return false;
     }
 
     updateKey(key) {
@@ -213,23 +91,17 @@ export class AuthManager {
     }
 
     logout() {
-        console.log('[AuthManager] Logging out, clearing storage...');
         localStorage.removeItem(this.storageKey);
-        localStorage.removeItem(this.visitKey); // Reset visit status to allow re-prompt on refresh
-
-        // Also call rust to reset state
         try {
-            authenticate(""); // Force reset in Rust
+            set_auth_state(false);
         } catch (e) { }
         this.notifyChange(false);
     }
 
     isAuthenticated() {
         try {
-            const res = is_authenticated();
-            return res;
+            return is_authenticated();
         } catch (e) {
-            console.error('[AuthManager] Error calling Rust is_authenticated:', e);
             return false;
         }
     }

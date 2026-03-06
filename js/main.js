@@ -38,6 +38,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         authManager
     };
 
+    // AppController が window.authManager を参照するため、グローバルに公開
+    window.authManager = authManager;
+
     // 5. Start Auth Flow
     // We do this after app init so UI is ready if we need it
     authManager.setOnAuthChange((isAuth) => {
