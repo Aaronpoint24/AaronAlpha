@@ -383,15 +383,16 @@ export function update_alignment_alpha_only(offset_x, offset_y, t, b, l, r, marg
 /**
  * ソリッドモードのパラメータを更新し、solid_bufferを再計算する
  * @param {number} solid_level
- * @param {number} edge_thres
  * @param {number} ray_dist
+ * @param {number} coast_dist
+ * @param {number} aa_thres
  * @param {number} gm_t
  * @param {number} gm_b
  * @param {number} gm_l
  * @param {number} gm_r
  */
-export function update_solid_params(solid_level, edge_thres, ray_dist, gm_t, gm_b, gm_l, gm_r) {
-    wasm.update_solid_params(solid_level, edge_thres, ray_dist, gm_t, gm_b, gm_l, gm_r);
+export function update_solid_params(solid_level, ray_dist, coast_dist, aa_thres, gm_t, gm_b, gm_l, gm_r) {
+    wasm.update_solid_params(solid_level, ray_dist, coast_dist, aa_thres, gm_t, gm_b, gm_l, gm_r);
 }
 
 /**

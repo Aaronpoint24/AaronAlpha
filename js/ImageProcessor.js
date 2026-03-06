@@ -68,7 +68,7 @@ export class ImageProcessor {
             overlayMode: false,  // true (1) or false (0)
             // ソリッド＆半透明保護カーブ（常に適用、表示フラグに依存しない）
             useAlphaCurve: true,
-            curveSolidPt: 0.95,  // 定着ライン (S) デフォルト
+            curveSolidPt: 1.0,   // 定着ライン (S) デフォルト
             curvePreserve: 3.0   // 保護パワー (P) デフォルト
         };
 
@@ -439,13 +439,13 @@ export class ImageProcessor {
     // ====== Solid Mode Methods ======
 
     /** ソリッドモードのパラメータ更新（閾値変更時に呼ぶ） */
-    updateSolidMode(solidLevel, edgeThres = 64, rayDist = 5) {
+    updateSolidMode(solidLevel, rayDist = 5, coastDist = 3, aaThres = 128) {
         if (!this.wasm) return;
         const gm = this.garbageMatte || { t: 0, b: 0, l: 0, r: 0 };
-        update_solid_params(solidLevel, edgeThres, rayDist, gm.t, gm.b, gm.l, gm.r);
+        update_solid_params(solidLevel, rayDist, coastDist, aaThres, gm.t, gm.b, gm.l, gm.r);
         // ポインタが変わる可能性はないが念のため取得
         this.solidPtr = get_solid_buffer_ptr();
-        console.log(`[ImageProcessor] updateSolidMode: level=${solidLevel}, gm=[${gm.t},${gm.b},${gm.l},${gm.r}]`);
+        console.log(`[ImageProcessor] updateSolidMode: level=${solidLevel}, rayDist=${rayDist}, coastDist=${coastDist}, aaThres=${aaThres}, gm=[${gm.t},${gm.b},${gm.l},${gm.r}]`);
     }
 
     /** 充填（ショット）を実行 */

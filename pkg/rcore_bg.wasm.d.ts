@@ -44,7 +44,7 @@ export const set_auth_state: (a: number) => void;
 export const set_calc_mode: (a: number, b: number, c: number, d: number) => void;
 export const set_offset: (a: number, b: number) => void;
 export const update_alignment_alpha_only: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: number) => void;
-export const update_solid_params: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+export const update_solid_params: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
 export const update_trash_mode: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number) => void;
 export const init_rust: () => void;
 export const __wbindgen_externrefs: WebAssembly.Table;

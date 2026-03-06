@@ -359,7 +359,7 @@ const dictionaries = {
         'settings.helpBtn': '説明',
 
         'help.bento.intro.title': '<h3 class="help-title">●ツール紹介</h3>',
-        'help.bento.intro.desc': '<p>半透明やグロー効果（発光）を含んだ画像を、<span class="help-highlight">綺麗に切り抜きたい</span>と思ったことはありませんか？<br>AI背景除去を使っても、依然として半透明部分の抽出は困難です。<br>NanobananaやMidjourneyは透過PNGを生成できません。</p><p>このツールは、生成AIの黒白背景画像を用いて<span class="help-highlight">半透明を綺麗に抜くPNG出力ツール</span>です。<br><strong class="help-warn">※このツール自体に入力画像を生成する機能はありません。</strong><br>ブラウザ（ローカル）で完結し、画像がサーバに送信されることはありません。</p><p>※入力画像を生成するコツ<br>「背景を黒単色（#000000）にして下さい。位置や大きさなどは動かさず忠実に再現して下さい」<br>さらに「xxの部分は半透明」「xxにはグロー効果が掛かっている」などと補足すると精度が上がります。<br>AIは気まぐれで、位置や色味、縮尺が異る場合があります。ご注意下さい。</p>',
+        'help.bento.intro.desc': '<p>半透明やグロー効果（発光）を含んだ画像を、<span class="help-highlight">綺麗に切り抜きたい</span>と思ったことはありませんか？<br>AI背景除去を使っても、依然として半透明部分の抽出は困難です。<br>NanobananaやMidjourneyは透過PNGを生成できません。</p><p>このツールは、同じ被写体の黒/白背景画像から、<span class="help-highlight">半透明を綺麗に抜くPNG出力ツール</span>です。<br><strong class="help-warn">※このツール自体に入力画像を生成する機能はありません。</strong><br>ブラウザ（ローカル）で完結し、画像がサーバに送信されることはありません。</p><p>※入力画像を生成するコツ<br>「背景を黒単色（#000000）にして下さい。位置や大きさなどは動かさず忠実に再現して下さい」<br>さらに「xxの部分は半透明」「xxにはグロー効果が掛かっている」などと補足すると精度が上がります。<br>AIは気まぐれで、位置や色味、縮尺が異る場合があります。ご注意下さい。</p>',
         'help.bento.basic.keys.title': '<h3 class="help-title">●キー・マウス操作一覧</h3>',
         'help.bento.basic.keys.desc': '<p>ホイールで拡大縮小します。<br>スペース＋左ドラッグ（またはホイールクリック）でスクロール<br>スペース＋右クリック（またはホイールダブルクリック）で画面フィット<br>[A]キーを押している間は背景設定が一時的に反転します。</p>',
 

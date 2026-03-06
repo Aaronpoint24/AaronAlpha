@@ -1,8 +1,11 @@
 import { t } from './i18n.js';
-import { authenticate, is_authenticated } from '../pkg/rcore.js';
+import { authenticate, is_authenticated, set_auth_state } from '../pkg/rcore.js';
 import { Dialog } from './Dialog.js';
 import { legalTexts } from './legal_pages.js';
 import { getCurrentLang } from './i18n.js';
+
+// Cloudflare Worker の認証検証エンドポイント
+const VERIFY_URL = 'https://aaronalpha.aaronpoint.workers.dev/verify';
 
 /**
  * Authentication Manager
@@ -38,6 +41,36 @@ export class AuthManager {
      * Checks if key exists in storage, if so, tries to authenticate.
      * If not, prompts user.
      */
+    /**
+     * Cloudflare Worker にキーを送信し、正規の検証結果を取得する
+     * @param {string} key ライセンスキー
+     * @returns {Promise<boolean>} 有効なキーであれば true
+     */
+    async verifyWithServer(key) {
+        try {
+            console.log('[AuthManager] Verifying key with Cloudflare Worker...');
+            const res = await fetch(VERIFY_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                console.log('[AuthManager] Server response:', data);
+                return data.valid === true;
+            } else {
+                console.warn(`[AuthManager] Server returned status ${res.status}`);
+                return false;
+            }
+        } catch (e) {
+            console.error('[AuthManager] Network error during verification:', e);
+            // ネットワークエラー時はローカルのRust判定にフォールバック
+            // （オフライン環境でも最低限の動作を保証）
+            console.log('[AuthManager] Falling back to local Rust authentication...');
+            return authenticate(key);
+        }
+    }
+
     async init() {
         const storedKey = localStorage.getItem(this.storageKey);
 
@@ -45,20 +78,21 @@ export class AuthManager {
         this.bindHeaderLinks();
 
         if (storedKey) {
-            console.log('[AuthManager] Found stored key, attempting authentication...');
+            console.log('[AuthManager] Found stored key, verifying with server...');
             try {
-                const result = authenticate(storedKey);
-                if (result) {
-                    console.log('[AuthManager] Auto-authentication successful.');
+                const isValid = await this.verifyWithServer(storedKey);
+                // WASM内部の認証状態も同期
+                set_auth_state(isValid);
+                if (isValid) {
+                    console.log('[AuthManager] Auto-authentication successful (server verified).');
                     this.notifyChange(true);
                 } else {
-                    console.warn('[AuthManager] Stored key is invalid.');
+                    console.warn('[AuthManager] Stored key is invalid (server rejected).');
                     this.notifyChange(false);
-                    // On error, we continue to show welcome if it's really the first time
                     this.checkFirstVisit();
                 }
             } catch (e) {
-                console.error('[AuthManager] Error calling Rust verify:', e);
+                console.error('[AuthManager] Error during init verification:', e);
                 this.notifyChange(false);
             }
         } else {
@@ -181,11 +215,13 @@ export class AuthManager {
 
         const trimmedKey = key.trim();
         try {
-            console.log(`[AuthManager] Attempting login with key: [${trimmedKey}]`);
-            const success = authenticate(trimmedKey);
-            console.log(`[AuthManager] Rust authenticate result: ${success}`);
+            console.log(`[AuthManager] Attempting login with server verification: [${trimmedKey.substring(0, 4)}...]`);
+            const isValid = await this.verifyWithServer(trimmedKey);
+            // WASM内部の認証状態を同期
+            set_auth_state(isValid);
+            console.log(`[AuthManager] Server verify result: ${isValid}`);
 
-            if (success) {
+            if (isValid) {
                 localStorage.setItem(this.storageKey, trimmedKey);
                 await Dialog.alert(t('auth.success'));
 
@@ -217,9 +253,9 @@ export class AuthManager {
         localStorage.removeItem(this.storageKey);
         localStorage.removeItem(this.visitKey); // Reset visit status to allow re-prompt on refresh
 
-        // Also call rust to reset state
+        // Rust内部の認証状態をリセット
         try {
-            authenticate(""); // Force reset in Rust
+            set_auth_state(false);
         } catch (e) { }
         this.notifyChange(false);
     }

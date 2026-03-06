@@ -117,7 +117,7 @@ export function update_alignment_alpha_only(offset_x: number, offset_y: number, 
 /**
  * ソリッドモードのパラメータを更新し、solid_bufferを再計算する
  */
-export function update_solid_params(solid_level: number, edge_thres: number, ray_dist: number, gm_t: number, gm_b: number, gm_l: number, gm_r: number): void;
+export function update_solid_params(solid_level: number, ray_dist: number, coast_dist: number, aa_thres: number, gm_t: number, gm_b: number, gm_l: number, gm_r: number): void;
 
 export function update_trash_mode(threshold: number, type_of_alpha: number, overlay_mode: number, t: number, b: number, l: number, r: number, vp_x: number, vp_y: number, vp_w: number, vp_h: number): void;
 
@@ -168,7 +168,7 @@ export interface InitOutput {
     readonly set_calc_mode: (a: number, b: number, c: number, d: number) => void;
     readonly set_offset: (a: number, b: number) => void;
     readonly update_alignment_alpha_only: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: number) => void;
-    readonly update_solid_params: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+    readonly update_solid_params: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
     readonly update_trash_mode: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number) => void;
     readonly init_rust: () => void;
     readonly __wbindgen_externrefs: WebAssembly.Table;
