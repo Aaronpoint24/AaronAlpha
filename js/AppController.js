@@ -381,6 +381,10 @@ export class AppController {
                 btn.classList.remove('btn-disabled');
                 btn.removeAttribute('data-disabled-msg');
                 btn.removeAttribute('title');
+            } else {
+                btn.classList.add('btn-disabled');
+                btn.setAttribute('data-disabled-msg', t('auth.reqAuth'));
+                btn.setAttribute('title', t('auth.promptMsg') || 'Basic認証が必要です');
             }
         });
 
