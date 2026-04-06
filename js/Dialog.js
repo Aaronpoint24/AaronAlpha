@@ -47,11 +47,24 @@ export class Dialog {
             }
 
             // Handle Image
+            let imgPromise = Promise.resolve();
             if (config.imagePath) {
                 this.imgContainer.style.display = 'block';
-                this.imgEl.src = config.imagePath;
+                // Wait for image load to prevent flicker
+                imgPromise = new Promise((imgRes) => {
+                    const img = this.imgEl;
+                    // Check if already same src or wait
+                    if (img.src.includes(config.imagePath) && img.complete) {
+                        imgRes();
+                    } else {
+                        img.onload = () => imgRes();
+                        img.onerror = () => imgRes();
+                        img.src = config.imagePath;
+                    }
+                });
             } else {
                 this.imgContainer.style.display = 'none';
+                this.imgEl.src = '';
             }
 
             // Handle Input
@@ -113,7 +126,10 @@ export class Dialog {
                 });
             }
 
-            this.overlay.style.display = 'flex';
+            // Wait for image before showing (if any)
+            imgPromise.then(() => {
+                this.overlay.style.display = 'flex';
+            });
 
             const cleanup = () => {
                 this.overlay.style.display = 'none';

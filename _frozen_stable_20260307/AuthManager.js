@@ -80,19 +80,6 @@ export class AuthManager {
     }
 
     async init() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlKey = urlParams.get('key');
-
-        if (urlKey) {
-            console.log('[AuthManager] Found key in URL, attempting auto-login...');
-            const success = await this.login(urlKey);
-            if (success) {
-                // クリーンアップ: URLからキーを削除してリロード（履歴を汚さないため）
-                const newUrl = window.location.origin + window.location.pathname;
-                window.history.replaceState({}, document.title, newUrl);
-            }
-        }
-
         const storedKey = localStorage.getItem(this.storageKey);
 
         // Bind Header Links
@@ -193,23 +180,25 @@ export class AuthManager {
      */
     async openPolarShop() {
         const lang = getCurrentLang();
-        const polarUrl = 'https://buy.polar.sh/polar_cl_HCvYLmxMTozbaS8eYMtLuDpx7ywG84xLNpZCH0TWtmM';
-
         if (lang === 'ja') {
-            const confirmed = await Dialog.show({
-                title: "認証キーの発行",
-                message: "メールアドレスを入力して「Get for free」を押して下さい。\n10秒程時間がかかる場合があります。\nメールでも認証キーをご案内します。",
-                imagePath: "image/Free payment.jpg",
-                type: 'confirm',
-                yesLabel: "認証キー発行",
-                noLabel: "キャンセル",
-                wideMode: true
-            });
-            if (!confirmed) return;
+            const confirmed = await Dialog.confirm(
+                "決済システム（Polar.sh）は英語表記となっています。\n決済手順の解説画像を表示しますか？",
+                "Polar.sh 決済のご案内"
+            );
+            if (confirmed) {
+                // Show guide image
+                await Dialog.show({
+                    title: "Polar.sh 決済手順",
+                    message: "1. 決済ページでメールアドレスを入力\n2. カード情報を入力\n3. 完了後に表示（またはメール）されるキーをコピーしてください。\n\n※この後ショップページを開きます。",
+                    imagePath: "image/polar_sh_guide_jp.png",
+                    type: 'alert',
+                    wideMode: true
+                });
+            }
         }
 
-        // Open shop in new tab/window
-        window.open(polarUrl, '_blank');
+        // Open shop in new tab
+        window.open('https://polar.sh/Aaronpoint', '_blank');
     }
 
     /**
