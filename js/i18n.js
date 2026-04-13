@@ -145,7 +145,7 @@ const dictionaries = {
         'help.bento.basic.keys.desc': '<p>Mouse Wheel: Zoom<br>Space + Left Drag or Wheel Click Drag: Scroll<br>Space + Right Click or Wheel Double Click: Fit to Screen<br>[A] key to invert the background setting.</p>',
 
         'help.bento.basic.steps.title': '<h3 class="help-title">● Quick Steps</h3>',
-        'help.bento.basic.steps.desc': '<p>Drag and drop black/white images.<br>Press the PNG Export button. That is it.<br><strong class="help-warn">※ In guest mode, noise removal features are disabled.</strong><br>If you want to refine it, <span class="help-highlight">go to Trash Mode.</span></p>',
+        'help.bento.basic.steps.desc': '<p>Drag and drop black/white images.<br>Press the PNG Export button. That is it.<br>If you want to refine it, <span class="help-highlight">go to Trash Mode.</span></p>',
 
         'help.bento.trash.intro.title': '<h3 class="help-title">● What is Trash Mode?</h3>',
         'help.bento.trash.intro.desc': '<p>AI images look clean at first glance, but they contain a lot of noise.<br>Adjust the noise threshold to force <span class="help-highlight">background noise to transparency</span>.<br>Be careful not to overdo it, or you will erase necessary parts.<p>The noise-removed alpha is reflected in the Basic Mode image.<br>Return to Basic Mode to export.<br>If you want to refine further, <span class="help-highlight">go to Solid Mode.</span></p>',
@@ -178,7 +178,7 @@ const dictionaries = {
         'help.tip.basic.compare': '<p>You can compare with the original image using the slider.</p>',
         'help.tip.basic.bg': '<p>Allows you to select the preview background color.</p>',
         'help.tip.basic.reset': '<p>Reset this mode.</p>',
-        'help.tip.basic.export': '<p>Outputs a transparent PNG.<br>※ Trash mode logic is disabled when unauthenticated.</p>',
+        'help.tip.basic.export': '<p>Outputs a transparent PNG.</p>',
 
         'help.tip.basic.curveSolid': '<p>Alpha values above this threshold will be forced to fully opaque.</p>',
         'help.tip.basic.curvePreserve': '<p>The higher the value, the more strongly semi-transparent areas are protected.</p>',
@@ -195,7 +195,7 @@ const dictionaries = {
         'help.tip.trash.reset': '<p>Reset this mode.</p>',
         'help.tip.trash.bg': '<p>Choose the background color.</p>',
         'help.tip.trash.compare': '<p>Compare with original image using the slider.</p>',
-        'help.tip.trash.export': '<p>Outputs a black/white matte (Binary) or alpha matte (Alpha).<br>Use as a custom matte or underlay in external tools.<br>※ Export is not available when unauthenticated.</p>',
+        'help.tip.trash.export': '<p>Outputs a black/white matte (Binary) or alpha matte (Alpha).<br>Use as a custom matte or underlay in external tools.</p>',
 
         'help.tip.solid.level': '<p>Force near-opaque areas to complete opacity.<br>Adjust until it is filled with [Blue] to some extent.</p>',
         'help.tip.solid.custom': '<p>I assume you are an advanced user if you are here.<br>Optionally load a custom matte image.</p>',
@@ -208,7 +208,7 @@ const dictionaries = {
         'help.tip.solid.compare': '<p>Compare with original image using the slider.</p>',
         'help.tip.solid.aaWidth': '<p>Width of the outline to secure for anti-aliasing.</p>',
         'help.tip.solid.aaThres': '<p>Alpha threshold recognized as anti-aliasing.<br>Press [S] key to set alpha from the cursor position.</p>',
-        'help.tip.solid.export': '<p>Outputs the image with opaque areas applied.<br>※ Export is not available when unauthenticated.</p>',
+        'help.tip.solid.export': '<p>Outputs the image with opaque areas applied.</p>',
 
         'help.tip.settings.lang': '<strong>Language</strong><p>Switch between Japanese and English.</p>',
         'help.tip.settings.issueAuth': '<strong>Issue Auth</strong><p>Issue an authentication key.</p>',
@@ -364,7 +364,7 @@ const dictionaries = {
         'help.bento.basic.keys.desc': '<p>ホイールで拡大縮小します。<br>スペース＋左ドラッグ（またはホイールクリック）でスクロール<br>スペース＋右クリック（またはホイールダブルクリック）で画面フィット<br>[A]キーを押している間は背景設定が一時的に反転します。</p>',
 
         'help.bento.basic.steps.title': '<h3 class="help-title">●手順概要</h3>',
-        'help.bento.basic.steps.desc': '<p>黒背景・白背景の2枚の画像をD&D（ドラッグ＆ドロップ）。<br>「PNG出力」ボタンを押す。以上。<br><strong class="help-warn">※未認証の状態では、ノイズ除去機能は適用されません。</strong><br>さらに細かく調整したい場合は<span class="help-highlight">ゴミ取りモードへ。</span></p>',
+        'help.bento.basic.steps.desc': '<p>黒背景・白背景の2枚の画像をD&D（ドラッグ＆ドロップ）。<br>「PNG出力」ボタンを押す。以上。<br>さらに細かく調整したい場合は<span class="help-highlight">ゴミ取りモードへ。</span></p>',
 
         'help.bento.trash.intro.title': '<h3 class="help-title">●ゴミ取りモードとは</h3>',
         'help.bento.trash.intro.desc': '<p>一見綺麗に見えるAI画像も、背景には微細なノイズが大量に残っています。<br>ここではノイズ閾値を調整し<span class="help-highlight">背景ノイズを透明に追い込みます。</span><br>数値を上げすぎると、必要なディテールまで削れるため注意してください。</p><p>除去した結果は基本モードに反映されます。<br>調整が終わったら、基本モードに戻って出力してください。<br>さらに不透明部分を補正したい場合は<span class="help-highlight">ソリッドモードへ。</span></p>',
@@ -372,7 +372,7 @@ const dictionaries = {
         'help.bento.trash.keys.desc': '<p>ホイールで拡大縮小します。<br>スペース＋左ドラッグ（またはホイールクリック）でスクロール<br>スペース＋右クリック（またはホイールダブルクリック）で画面フィット<br>[A]キーを押している間は背景設定が一時的に反転します。</p><h4>投縄</h4><p>左ドラッグでアルファを削ります。<br>右ドラッグで元に戻します。<br>Altを押しながらクリックすると多角形で囲めます。<br>[Z]キーを押している間は、比較スライダー操作中も投げ縄機能を強制的にオンにします。<br>Ctrl+ZでUndoできます。</p>',
 
         'help.bento.solid.intro.title': '<h3 class="help-title">●ソリッドモードとは...</h3>',
-        'help.bento.solid.intro.desc': '<p>黒白比較の抽出では、本来ソリッド（完全な不透明）であるべき部分にも透過情報が残ります。<br>不透明度閾値を調整して<span class="help-highlight">ソリッド部分を完全な不透明に追い込みます。</span></p><p>下げすぎると半透明やグロー、アンチエイリアスの部分まで不透明にしてしまうので、やり過ぎは禁物です。<br>そもそも半透明が主体の場合はココの編集は不要です。</p><p>「充填」ボタンで塗り残しを自動補正し、細かい部分は「投げ縄」で修正してください。<br>PNG出力ボタンで完成です。</p><p>白を編集するので、可視化オンで編集するのがオススメです。<br>慣れてきたらプレビューと比較をオンにして、比較しながら気になる所だけ修正するのがオススメです。</p><h4 class="help-title no-border">●最後に</h4>もっと詳しく知りたい方は、左上のアイコンからどうぞ。',
+        'help.bento.solid.intro.desc': '<p>黒白比較の抽出では、本来ソリッド（完全な不透明）であるべき部分にも透過情報が残ります。<br>不透明度閾値を調整して<span class="help-highlight">ソリッド部分を完全な不透明に追い込みます。</span></p><p>下げすぎると半透明やグロー、アンチエイリアスの部分まで不透明にしてしまうので、やり過ぎは禁物です。<br>そもそも半透明が主体の場合はココの編集は不要です。</p><p>「充填」ボタンで塗り残しを自動補正し、細かい部分は「投げ縄」で修正してください。<br>PNG出力ボタンで完成です。</p><p>白を編集するので、可視化オンで編集するのがオススメです。<br>慣れてきたらプレビューと比較をオンにして、比較しながら気になる所だけ修正するのがオススメです。</p><h4 class="help-title no-border">●最後に</h4>もっと詳しく知りたい方は、左上の鹿のアイコンからどうぞ。',
         'help.bento.solid.keys.title': '<h3 class="help-title">●キー・マウス操作一覧</h3>',
         'help.bento.solid.keys.desc': '<p>ホイールで拡大縮小します。<br>スペース＋左ドラッグ（またはホイールクリック）でスクロール<br>スペース＋右クリック（またはホイールダブルクリック）で画面フィット<br>[A]キーを押している間は背景設定が一時的に反転します。</p><h4>投縄</h4><p>左ドラッグで不透明にします。<br>右ドラッグで元に戻します。<br>Altを押しながらクリックすると多角形で囲めます。<br>[Z]キーを押している間は、比較スライダー操作中も投げ縄機能を強制的にオンにします。<br>Ctrl+ZでUndoできます。</p>',
 
@@ -397,7 +397,7 @@ const dictionaries = {
         'help.tip.basic.compare': '<p>スライダーで元画像と比較できます。</p>',
         'help.tip.basic.bg': '<p>背景色を選択できます。</p>',
         'help.tip.basic.reset': '<p>このモードをリセットします。</p>',
-        'help.tip.basic.export': '<p>透過PNGを出力します。<br>※未認証時はゴミ取りが無効になります。</p>',
+        'help.tip.basic.export': '<p>透過PNGを出力します。</p>',
 
         'help.tip.basic.curveSolid': '<p>この閾値以上のアルファが完全不透明に引き上げられます。</p>',
         'help.tip.basic.curvePreserve': '<p>値が高いほど半透明部分が強く保護されます。</p>',
@@ -414,7 +414,7 @@ const dictionaries = {
         'help.tip.trash.reset': '<p>このモードをリセットします。</p>',
         'help.tip.trash.bg': '<p>背景色を選択できます。</p>',
         'help.tip.trash.compare': '<p>スライダーで元画像と比較できます。</p>',
-        'help.tip.trash.export': '<p>二値の場合は白黒マット。<br>アルファの場合はアルファマットを出力します。<br>外部ツールで自作マットや下敷きとしてご活用ください。<br>※未認証時は出力できません。</p>',
+        'help.tip.trash.export': '<p>二値の場合は白黒マット。<br>アルファの場合はアルファマットを出力します。<br>外部ツールで自作マットや下敷きとしてご活用ください。</p>',
 
         'help.tip.solid.level': '<p>不透明に近い場所を完全な不透明に追い込みます。<br>ある程度[青]で埋まるまで調整して下さい。</p>',
         'help.tip.solid.custom': '<p>ここを触っている人は上級者ですよね。<br>任意で自作マットをロードできます。</p>',
@@ -427,7 +427,7 @@ const dictionaries = {
         'help.tip.solid.compare': '<p>スライダーで元画像と比較できます。</p>',
         'help.tip.solid.aaWidth': '<p>アンチエイリアスとして確保する輪郭の幅。',
         'help.tip.solid.aaThres': '<p>アンチエイリアスとして認識する透明度。<br>[S]キーでカーソルのアルファ値が設定されます。',
-        'help.tip.solid.export': '<p>不透明部分が適用された画像を出力します。<br>※未認証時は出力できません。</p>',
+        'help.tip.solid.export': '<p>不透明部分が適用された画像を出力します。</p>',
 
         'help.tip.settings.lang': '<p>言語を切り替えます。</p>',
         'help.tip.settings.issueAuth': '<p>認証キーを発行します。</p>',

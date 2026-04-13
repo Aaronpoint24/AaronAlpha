@@ -46,79 +46,15 @@ export class AuthManager {
      * @returns {Promise<boolean>} Rust 側での検証が成功すれば true
      */
     async verifyWithServer(key) {
-        try {
-            console.log('[AuthManager] Verifying key with Cloudflare Worker...');
-            const res = await fetch(VERIFY_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ key })
-            });
-            if (res.ok) {
-                const data = await res.json();
-                console.log('[AuthManager] Server response received.');
-
-                if (data.valid === true && data.token) {
-                    // [SECURITY] トークンを Rust 側に渡して署名検証
-                    console.log('[AuthManager] Received signed token, passing to Rust for verification...');
-                    const rustResult = verify_auth_token(data.token);
-                    console.log(`[AuthManager] Rust verify_auth_token result: ${rustResult}`);
-                    return rustResult;
-                } else {
-                    console.warn('[AuthManager] Server rejected key (valid=false or no token).');
-                    return false;
-                }
-            } else {
-                console.warn(`[AuthManager] Server returned status ${res.status}`);
-                return false;
-            }
-        } catch (e) {
-            console.error('[AuthManager] Network error during verification:', e);
-            // ネットワークエラー時は認証失敗とする（フォールバックなし）
-            console.warn('[AuthManager] Network error - authentication denied for security.');
-            return false;
-        }
+        // [AUTH BYPASS] 常に true
+        return true;
     }
 
     async init() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlKey = urlParams.get('key');
-
-        if (urlKey) {
-            console.log('[AuthManager] Found key in URL, attempting auto-login...');
-            const success = await this.login(urlKey);
-            if (success) {
-                // クリーンアップ: URLからキーを削除してリロード（履歴を汚さないため）
-                const newUrl = window.location.origin + window.location.pathname;
-                window.history.replaceState({}, document.title, newUrl);
-            }
-        }
-
-        const storedKey = localStorage.getItem(this.storageKey);
-
         // Bind Header Links
         this.bindHeaderLinks();
-
-        if (storedKey) {
-            console.log('[AuthManager] Found stored key, verifying with server...');
-            try {
-                const isValid = await this.verifyWithServer(storedKey);
-                if (isValid) {
-                    console.log('[AuthManager] Auto-authentication successful (server + Rust verified).');
-                    this.notifyChange(true);
-                } else {
-                    console.warn('[AuthManager] Stored key is invalid (server/Rust rejected).');
-                    this.notifyChange(false);
-                    this.checkFirstVisit();
-                }
-            } catch (e) {
-                console.error('[AuthManager] Error during init verification:', e);
-                this.notifyChange(false);
-            }
-        } else {
-            console.log('[AuthManager] No stored key found.');
-            this.notifyChange(false);
-            this.checkFirstVisit();
-        }
+        // [AUTH BYPASS] 常に認証済みとして通知
+        this.notifyChange(true);
     }
 
     /**
@@ -159,57 +95,14 @@ export class AuthManager {
      * Check if first visit and show welcome dialog
      */
     async checkFirstVisit() {
-        const hasVisited = localStorage.getItem(this.visitKey);
-        if (!hasVisited) {
-            localStorage.setItem(this.visitKey, 'true');
-
-            // Show welcome dialog with 2 buttons
-            const res = await Dialog.show({
-                title: t('auth.welcomeTitle'),
-                message: t('auth.welcomeMsg'),
-                type: 'confirm',
-                yesLabel: t('auth.btnGoAuth'),
-                noLabel: t('auth.btnTry')
-            });
-
-            if (res === true) {
-                // "Go to Auth" -> Open settings
-                const btnSettings = document.getElementById('btn-settings');
-                if (btnSettings) btnSettings.click();
-
-                const inpKey = document.getElementById('inp-auth-key');
-                if (inpKey) {
-                    setTimeout(() => inpKey.focus(), 300);
-                }
-            } else {
-                // "Try it out" -> Do nothing, stay on basic
-                console.log('[AuthManager] User chose to try out first.');
-            }
-        }
+        // [AUTH BYPASS] 無効化
     }
 
     /**
      * Open Polar Shop with guidance if Japanese
      */
     async openPolarShop() {
-        const lang = getCurrentLang();
-        const polarUrl = 'https://buy.polar.sh/polar_cl_HCvYLmxMTozbaS8eYMtLuDpx7ywG84xLNpZCH0TWtmM';
-
-        if (lang === 'ja') {
-            const confirmed = await Dialog.show({
-                title: "認証キーの発行",
-                message: "メールアドレスを入力して「Get for free」を押して下さい。\n10秒程時間がかかる場合があります。\nメールでも認証キーをご案内します。",
-                imagePath: "image/Free payment.jpg",
-                type: 'confirm',
-                yesLabel: "認証キー発行",
-                noLabel: "キャンセル",
-                wideMode: true
-            });
-            if (!confirmed) return;
-        }
-
-        // Open shop in new tab/window
-        window.open(polarUrl, '_blank');
+        // [AUTH BYPASS] 無効化
     }
 
     /**
@@ -278,10 +171,7 @@ export class AuthManager {
     }
 
     isAuthenticated() {
-        try {
-            return is_authenticated();
-        } catch (e) {
-            return false;
-        }
+        // [AUTH BYPASS] 常に true を返す
+        return true;
     }
 }

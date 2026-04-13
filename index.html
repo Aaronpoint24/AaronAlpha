@@ -255,9 +255,9 @@
     <div id="custom-dialog-overlay">
         <div class="dialog-card">
             <div class="dialog-header">
-                <div id="dialog-title" class="dialog-title">Title</div>
+                <div id="dialog-title" class="dialog-title">タイトル</div>
             </div>
-            <div id="dialog-body" class="dialog-body">Message goes here.</div>
+            <div id="dialog-body" class="dialog-body">メッセージ</div>
             <div id="dialog-img-container" style="display: none; margin-bottom: 24px; text-align: center;">
                 <img id="dialog-img" src=""
                     style="max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #444;">
@@ -289,13 +289,11 @@
                 </a>
                 Aaron Alpha <span class="version" style="margin-left:6px;">v1.0</span>
                 <span id="auth-status" class="auth-status"
-                    style="margin-left:12px; font-size:12px; padding:2px 6px; border-radius:4px;"></span>
+                    style="display: none !important;"></span>
             </h1>
         </div>
         <div class="header-right-links">
             <a id="lnk-terms" data-i18n="terms.link">利用規約</a>
-            <a id="lnk-privacy" data-i18n="privacy.link">プライバシーポリシー</a>
-            <a id="lnk-refund" data-i18n="refund.link">返金について</a>
         </div>
     </header>
     <!-- Settings Modal -->
@@ -321,9 +319,9 @@
                     <!-- 認証発行ボタン (未認証時に有効) -->
                     <button id="btn-issue-auth" class="setting-item" data-i18n-title="help.tip.settings.issueAuth"
                         data-i18n="settings.issueAuthBtn"
-                        style="margin-bottom: 0; flex:1; font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; font-weight: 900; font-size: 20px; padding: 12px; background: linear-gradient(135deg, #ff4c4c, #c92a2a); color: #fff; border: 2px solid #ff0000; border-radius: 6px; cursor: pointer; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); transition: all 0.2s;">認証発行</button>
+                        style="display: none !important; margin-bottom: 0; flex:1; font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; font-weight: 900; font-size: 20px; padding: 12px; background: linear-gradient(135deg, #ff4c4c, #c92a2a); color: #fff; border: 2px solid #ff0000; border-radius: 6px; cursor: pointer; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); transition: all 0.2s;">認証発行</button>
                 </div>
-                <div class="setting-item" style="margin-top: 15px;" data-i18n-title="help.tip.settings.auth">
+                <div class="setting-item" style="margin-top: 15px; display: none !important;" data-i18n-title="help.tip.settings.auth">
                     <label data-i18n="settings.authKey">認証キー</label>
                     <div style="display:flex; gap:5px;">
                         <input type="password" id="inp-auth-key" placeholder="Enter Key" style="flex:1;">
@@ -425,8 +423,7 @@
                         <div id="offset-display" data-help-key="help.tip.basic.correction"
                             style="font-size: 11px; color: #aaa; text-align: right; margin-top: 4px; font-family: 'Inter', sans-serif;">
                             <span id="auto-align-msg"
-                                style="display: none; color: #ffcc00; margin-right: 10px;">Calculating
-                                Auto-Offset...</span>
+                                style="display: none; color: #ffcc00; margin-right: 10px;">自動位置合わせ中...</span>
                             <span data-i18n="basic.correction">補正値</span>: <span id="val-offset-x">0</span>, <span
                                 id="val-offset-y">0</span>
                         </div>
