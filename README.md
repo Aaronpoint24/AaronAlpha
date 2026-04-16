@@ -13,6 +13,9 @@
 ### 「半透明」が綺麗に抜けない悩みを『AaronAlpha』で解決する方法
 👉 **[アプリを起動する (Launch App)](https://aaronalpha.aaronpoint.workers.dev/)**
 
+### 💻 動作環境
+- **PCのみ対応** (タブレットやスマートフォンは画面サイズやUIの都合上、動作対象外です)
+
 ### 🌟 概要
 半透明やグロー効果（発光）を含んだ画像を**綺麗に抜きたい**と思ったことはありませんか？
 AI背景除去を使っても、依然として半透明部分の抽出は困難です。
@@ -43,6 +46,9 @@ AI背景除去を使っても、依然として半透明部分の抽出は困難
 
 ### How to perfectly extract semi-transparent subjects with AaronAlpha
 👉 **[Launch Application (アプリを起動する)](https://aaronalpha.aaronpoint.workers.dev/)**
+
+### 💻 Operating Environment
+- **PC Only** (Tablets and smartphones are not supported due to screen size and UI constraints)
 
 ### 🌟 Overview
 Have you ever wanted to **cleanly extract** images that contain semi-transparency or glow effects?

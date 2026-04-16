@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const translations = {
         ja: {
             title: "AaronAlpha",
-            subtitle: "半透明の切り抜き精度をご体験下さい。",
+            subtitle: "半透明の切り抜き精度をご確認下さい。",
             sample1_title: "Sample01：クラゲ",
             sample1_desc: "黒背景から完全に分離して透過処理します。エッジのフリンジを残しません。",
             sample2_title: "Sample02：半透明/グロー/ソリッド混在",
