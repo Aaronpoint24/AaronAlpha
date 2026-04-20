@@ -53,3 +53,10 @@ secure_docs/
 AaronAlpha_CloudflareWorkers/
 
 
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
