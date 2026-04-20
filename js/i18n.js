@@ -82,6 +82,9 @@ const dictionaries = {
 
         // Alerts
         'alert.noImage': 'Please load an image first.',
+        'alert.needSecondImageBlack': '1st image loaded.\nTransparency processing requires the paired [Black Background] image.',
+        'alert.needSecondImageWhite': '1st image loaded.\nTransparency processing requires the paired [White Background] image.',
+        'alert.needTwoImagesToExport': 'Export requires both Black and White background images to be loaded.',
         'alert.imageOnly': 'Image files only.',
         'alert.solidReset': 'Solid Mode state has been reset.',
         'alert.alphaUpdateConfirm': 'Are you sure you want to revert to the generated alpha?\n\n* Manual edits like lasso or Ray Fill will be reset.\n(Garbage matte exclusion will be maintained)',
@@ -298,6 +301,9 @@ const dictionaries = {
 
         // Alerts
         'alert.noImage': '画像を読み込んでください。',
+        'alert.needSecondImageBlack': '1枚目の画像を読み込みました。\n透過処理を行うにはセットとなる【黒背景】の画像も必要です。',
+        'alert.needSecondImageWhite': '1枚目の画像を読み込みました。\n透過処理を行うにはセットとなる【白背景】の画像も必要です。',
+        'alert.needTwoImagesToExport': '画像の出力には、黒背景と白背景の【2枚】がセットされている必要があります。',
         'alert.imageOnly': '画像ファイルのみ対応',
         'alert.solidReset': 'ソリッド状態（手動で読み込んだ被り画像含む）をリセットしました。',
         'alert.alphaUpdateConfirm': '生成時アルファに戻してもよろしいですか？\n\n※投げ縄やソリッドのRay充填等で手動編集されたアルファ領域は、生成時の状態にリセットされます。\n（除外範囲で削った部分は維持されます）',

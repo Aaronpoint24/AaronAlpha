@@ -1240,6 +1240,7 @@ export class AppController {
 
             if (this.processor.hasImages()) { // willProcess should be true here
                 console.log('[AppController] Images ready. Keeping overlay active for processing...');
+                this.updateNoImageLock();
 
                 // Give browser a moment to render the message (even though overlay is up)
                 // Overlay z-index is 10000, Message z-index is 10002.
@@ -1267,6 +1268,7 @@ export class AppController {
                 }, 50); // Small delay to ensure UI update
             } else {
                 console.log('[AppController] First image loaded, waiting for second...');
+                this.updateNoImageLock();
                 // If not processing, hide loader here (handled in finally/conditional below)
             }
         } catch (e) {
@@ -1907,6 +1909,11 @@ export class AppController {
     }
 
     handleExportBasic() {
+        if (!this.processor.hasImages()) {
+            Dialog.alert(t('alert.needTwoImagesToExport'));
+            return;
+        }
+
         // エクスポート前にゴミ取り結果を確定させ、最新のストレートRGBを構築する
         if (this.processor.hasImages() && this.hasEnteredTrash) {
             this.processor.finalizeTrashMode();
@@ -1924,6 +1931,11 @@ export class AppController {
     }
 
     handleExportTrash() {
+        if (!this.processor.hasImages()) {
+            Dialog.alert(t('alert.needTwoImagesToExport'));
+            return;
+        }
+
         // エクスポート前に画面外（ビューポート外）も含めた全域のバッファをフルリフレッシュする
         if (this.processor.hasImages()) {
             this.processor.finalizeTrashMode();
@@ -1944,6 +1956,11 @@ export class AppController {
     }
 
     handleExportSolid() {
+        if (!this.processor.hasImages()) {
+            Dialog.alert(t('alert.needTwoImagesToExport'));
+            return;
+        }
+
         const bgColor = (this.canvasBackground.type === 'color') ? this.canvasBackground.color : null;
         // Solid mode always exports "Solid Integrated" view
         const result = this.processor.processExport('solid', bgColor, this.baseFileName || 'image');
@@ -2101,23 +2118,39 @@ export class AppController {
         const content = document.querySelector('.controls-content');
         const viewport = document.getElementById('viewport-container');
 
-        let shouldLock = isLocked;
-        if (shouldLock === null) {
-            shouldLock = !this.processor.hasImages() && this.currentMode !== 'basic';
+        let shouldLockPanel = isLocked;
+        if (shouldLockPanel === null) {
+            shouldLockPanel = !this.processor.hasImages() && this.currentMode !== 'basic';
         }
 
-        if (shouldLock) {
-            if (pOverlay) {
+        const shouldShowCanvasMsg = !this.processor.hasImages();
+
+        if (pOverlay) {
+            if (shouldLockPanel) {
                 if (content && pOverlay.parentElement !== content) content.appendChild(pOverlay);
                 pOverlay.style.display = 'block';
+            } else {
+                pOverlay.style.display = 'none';
             }
-            if (cOverlay) {
+        }
+
+        if (cOverlay) {
+            if (shouldShowCanvasMsg) {
                 if (viewport && cOverlay.parentElement !== viewport) viewport.appendChild(cOverlay);
+                const msgSpan = cOverlay.querySelector('.no-image-message span');
+                if (msgSpan) {
+                    if (this.processor.blackBitmap && !this.processor.whiteBitmap) {
+                        msgSpan.innerHTML = t('alert.needSecondImageWhite').replace(/\n/g, '<br>');
+                    } else if (this.processor.whiteBitmap && !this.processor.blackBitmap) {
+                        msgSpan.innerHTML = t('alert.needSecondImageBlack').replace(/\n/g, '<br>');
+                    } else {
+                        msgSpan.textContent = t('alert.noImage');
+                    }
+                }
                 cOverlay.style.display = 'flex';
+            } else {
+                cOverlay.style.display = 'none';
             }
-        } else {
-            if (pOverlay) pOverlay.style.display = 'none';
-            if (cOverlay) cOverlay.style.display = 'none';
         }
     }
 
@@ -2244,6 +2277,7 @@ export class AppController {
         this.resetBackgroundSettings();
 
         this.renderEngine.requestRender();
+        this.updateNoImageLock();
 
         console.log('[AppController] Reset Complete.');
     }
